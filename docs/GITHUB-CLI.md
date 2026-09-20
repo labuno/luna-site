@@ -1,5 +1,9 @@
 # GitHub CLI 初始化与运维
 
+> 同一台机器上有多个 GitHub 账号（如本机同时有个人账号与 `lunafoundry`）时，
+> 先按 [`MULTI-ACCOUNT.md`](./MULTI-ACCOUNT.md) 完成一次性身份配置，
+> 再执行本文的建仓步骤；本文所有脚本都已锁定目标账号，不会误用活跃账号。
+
 前置：`gh auth login`，账号对 `lunafoundry` 有仓库创建权限。命令中的路径以两个仓库同级存放为例：
 
 ```text
