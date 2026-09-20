@@ -133,10 +133,24 @@ draft: false                 # true 不生成页面/RSS/Sitemap/搜索索引
   博客列表支持 `?section=` 与 `?tags=a,b`（AND 组合，客户端即时过滤，URL 可分享）；
   小说书架支持 `?genre=`。
 
+## 设计文档
+
+- [`docs/DESIGN-V1.md`](./docs/DESIGN-V1.md)：设计基线 V1.0 的 Markdown 版本
+  （与 `LunaFoundry_双仓库网站系统设计与开发交付文档_V1.0.docx` 内容一致，由
+  `docs/tools/docx-to-markdown.py` 转换，原件为签署版）。
+- [`docs/GITHUB-CLI.md`](./docs/GITHUB-CLI.md)：建仓、配置 Variables/Secrets、发布与回滚命令。
+
 ## 部署到 GitHub Pages（第一阶段）
 
 首次创建仓库、配置 Variables/Secrets、首次发布与日常发布的完整命令见
-[`docs/GITHUB-CLI.md`](./docs/GITHUB-CLI.md)。这里是要点：
+[`docs/GITHUB-CLI.md`](./docs/GITHUB-CLI.md)。也可以直接运行两个幂等脚本：
+
+```bash
+./scripts/bootstrap-github.sh    # 创建两个仓库、写入 Variables、推送、开启 Pages(Actions)
+./scripts/configure-secrets.sh   # 交互式写入两个最小权限 PAT 并触发首次部署
+```
+
+这里是要点：
 
 1. `luna-site` 为 Public，`content` 为 Private。
 2. `luna-site` Variables：`CONTENT_REPOSITORY`、`SITE_URL`、`BASE_PATH`。
