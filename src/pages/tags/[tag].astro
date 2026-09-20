@@ -1,0 +1,125 @@
+---
+import { getCollection, type CollectionEntry } from 'astro:content';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import BlogCard from '@/components/BlogCard.astro';
+import { slugify } from '@/utils/content';
+import { sitePath } from '@/utils/paths';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog', ({ data }) => import.meta.env.DEV || !data.draft);
+  const novels = await getCollection('novels');
+  const chapters = await getCollection('chapters', ({ data }) => import.meta.env.DEV || !data.draft);
+  const projects = await getCollection('projects');
+
+  interface TagEntry {
+    slug: string;
+    name: string;
+    posts: CollectionEntry<'blog'>[];
+    novels: CollectionEntry<'novels'>[];
+    chapters: CollectionEntry<'chapters'>[];
+    projects: CollectionEntry<'projects'>[];
+  }
+
+  const bySlug = new Map<string, TagEntry>();
+  const remember = (name: string): TagEntry => {
+    const slug = slugify(name);
+    const existing = bySlug.get(slug);
+    if (existing) return existing;
+    const entry: TagEntry = { slug, name, posts: [], novels: [], chapters: [], projects: [] };
+    bySlug.set(slug, entry);
+    return entry;
+  };
+
+  for (const post of posts) {
+    for (const tag of post.data.tags) remember(tag).posts.push(post);
+  }
+  for (const novel of novels) {
+    for (const tag of novel.data.tags) remember(tag).novels.push(novel);
+  }
+  for (const chapter of chapters) {
+    for (const tag of chapter.data.tags) remember(tag).chapters.push(chapter);
+  }
+  for (const project of projects) {
+    for (const tag of project.data.tags) remember(tag).projects.push(project);
+  }
+
+  return [...bySlug.values()]
+    .filter((entry) => entry.posts.length + entry.novels.length + entry.chapters.length + entry.projects.length > 0)
+    .map((entry) => ({ params: { tag: entry.slug }, props: entry }));
+}
+
+interface Props {
+  name: string;
+  posts: CollectionEntry<'blog'>[];
+  novels: CollectionEntry<'novels'>[];
+  chapters: CollectionEntry<'chapters'>[];
+  projects: CollectionEntry<'projects'>[];
+}
+
+const { name, posts, novels, chapters, projects } = Astro.props;
+const novelTitles = new Map(novels.map((novel) => [novel.data.slug, novel.data.title]));
+const total = posts.length + novels.length + chapters.length + projects.length;
+---
+<BaseLayout title={`标签：${name}`} description={`标签 ${name} 下的文章、小说与章节。`}>
+  <section class="page-intro">
+    <span class="eyebrow">TAG</span>
+    <h1>#{name}</h1>
+    <p>{total} 条内容</p>
+  </section>
+
+  {posts.length > 0 && (
+    <section class="section-block">
+      <div class="section-heading"><div><h2>文章</h2></div></div>
+      <div class="grid two-cols">
+        {posts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf()).map((post) => <BlogCard post={post} />)}
+      </div>
+    </section>
+  )}
+
+  {novels.length > 0 && (
+    <section class="section-block">
+      <div class="section-heading"><div><h2>小说</h2></div></div>
+      <div class="grid two-cols">
+        {novels.map((novel) => (
+          <a class="card" href={sitePath(`/novel/${novel.data.slug}/`)}>
+            <strong>{novel.data.title}</strong>
+            <p>{novel.data.description}</p>
+          </a>
+        ))}
+      </div>
+    </section>
+  )}
+
+  {projects.length > 0 && (
+    <section class="section-block">
+      <div class="section-heading"><div><h2>项目</h2></div></div>
+      <div class="grid two-cols">
+        {projects.map((project) => (
+          <a class="card" href={sitePath('/projects/')}>
+            <strong>{project.data.title}</strong>
+            <p>{project.data.description}</p>
+          </a>
+        ))}
+      </div>
+    </section>
+  )}
+
+  {chapters.length > 0 && (
+    <section class="section-block">
+      <div class="section-heading"><div><h2>章节</h2></div></div>
+      <ul class="chapter-list">
+        {chapters
+          .sort((a, b) => b.data.published.valueOf() - a.data.published.valueOf())
+          .map((chapter) => (
+            <li>
+              <a href={sitePath(`/novel/${chapter.data.novel}/${chapter.data.slug}/`)}>
+                <span>{String(chapter.data.chapter).padStart(3, '0')}</span>
+                <strong>{chapter.data.title}</strong>
+                <time>{novelTitles.get(chapter.data.novel) ?? chapter.data.novel}</time>
+              </a>
+            </li>
+          ))}
+      </ul>
+    </section>
+  )}
+</BaseLayout>

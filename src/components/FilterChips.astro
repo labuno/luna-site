@@ -1,0 +1,46 @@
+---
+import { sitePath } from '@/utils/paths';
+
+interface Chip {
+  slug: string;
+  name: string;
+  count?: number;
+}
+
+interface Props {
+  /** section | tags | genre */
+  kind: string;
+  label: string;
+  chips: Chip[];
+  /** Path used by the "all" chip and as the base for non-JS links */
+  resetHref: string;
+  allLabel?: string;
+}
+
+const { kind, label, chips, resetHref, allLabel = '全部' } = Astro.props;
+
+function chipHref(slug: string) {
+  const separator = resetHref.includes('?') ? '&' : '?';
+  return slug ? `${resetHref}${separator}${kind === 'genre' ? 'genre' : kind}=${encodeURIComponent(slug)}` : resetHref;
+}
+---
+<div class="filter-group">
+  <span class="filter-label">{label}</span>
+  <a
+    class="chip"
+    data-filter-chip
+    data-kind={kind}
+    data-slug=""
+    href={sitePath(resetHref)}
+  >{allLabel}</a>
+  {chips.map((chip) => (
+    <a
+      class="chip"
+      data-filter-chip
+      data-kind={kind}
+      data-slug={chip.slug}
+      data-name={chip.name}
+      href={sitePath(chipHref(chip.slug))}
+    >{kind === 'tags' ? `#${chip.name}` : chip.name}{chip.count !== undefined && <span>{chip.count}</span>}</a>
+  ))}
+</div>

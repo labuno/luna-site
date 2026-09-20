@@ -1,0 +1,88 @@
+---
+import Header from '@/components/Header.astro';
+import Footer from '@/components/Footer.astro';
+import { siteConfig } from '@/site.config';
+import { sitePath } from '@/utils/paths';
+import '@/styles/global.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+  /** Root-absolute media path as written in content, e.g. /media/blog/x/cover.webp */
+  image?: string;
+  ogType?: 'website' | 'article' | 'book';
+  noindex?: boolean;
+}
+
+const {
+  title = siteConfig.title,
+  description = siteConfig.description,
+  image,
+  ogType = 'website',
+  noindex = false,
+} = Astro.props;
+
+const pageTitle = title === siteConfig.title ? title : `${title} · ${siteConfig.name}`;
+const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site) : Astro.url;
+const ogImage = image ? new URL(sitePath(image), canonical).href : undefined;
+const base = import.meta.env.BASE_URL || '/';
+---
+<!doctype html>
+<html lang={siteConfig.language} data-base={base}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="generator" content={Astro.generator} />
+    <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex,nofollow" />}
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" type="image/svg+xml" href={sitePath('/favicon.svg')} />
+    <link rel="alternate" type="application/rss+xml" title={`${siteConfig.name} RSS`} href={sitePath('/rss.xml')} />
+    <meta property="og:type" content={ogType} />
+    <meta property="og:site_name" content={siteConfig.name} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    {ogImage && <meta property="og:image" content={ogImage} />}
+    <meta name="twitter:card" content={ogImage ? 'summary_large_image' : 'summary'} />
+    <title>{pageTitle}</title>
+    <slot name="head" />
+    <script is:inline>
+      (() => {
+        const saved = localStorage.getItem('theme');
+        const dark = saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+      })();
+    </script>
+  </head>
+  <body>
+    <Header />
+    <main class="page-shell">
+      <slot />
+    </main>
+    <Footer />
+    <script is:inline>
+      (() => {
+        const root = document.documentElement;
+        document.querySelector('#theme-toggle')?.addEventListener('click', () => {
+          const next = root.dataset.theme === 'dark' ? 'light' : 'dark';
+          root.dataset.theme = next;
+          localStorage.setItem('theme', next);
+        });
+
+        document.addEventListener('keydown', (event) => {
+          const target = event.target;
+          const typing =
+            target instanceof HTMLInputElement ||
+            target instanceof HTMLTextAreaElement ||
+            (target instanceof HTMLElement && target.isContentEditable);
+          if (!typing && (event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
+            event.preventDefault();
+            const base = root.dataset.base || '/';
+            window.location.href = `${base}search/`;
+          }
+        });
+      })();
+    </script>
+  </body>
+</html>

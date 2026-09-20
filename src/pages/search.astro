@@ -1,0 +1,41 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+const base = import.meta.env.BASE_URL || '/';
+---
+<BaseLayout title="搜索" description="搜索 LunaFoundry 的博客、小说与项目。" noindex={true}>
+  <section class="page-intro search-intro">
+    <span class="eyebrow">SEARCH</span>
+    <h1>搜索整个 LunaFoundry</h1>
+    <p>博客、小说章节和项目在每次构建时由 Pagefind 自动建立静态全文索引。按 ⌘/Ctrl + K 可随时回到这里。</p>
+  </section>
+
+  <div class="search-panel">
+    <div id="search"></div>
+    <p id="search-dev-note" class="muted" hidden>
+      开发模式没有 Pagefind 索引。请运行 <code>npm run build</code> 后执行 <code>npm run preview</code> 测试搜索。
+    </p>
+  </div>
+
+  <link rel="stylesheet" href={`${base}pagefind/pagefind-ui.css`} />
+  <script src={`${base}pagefind/pagefind-ui.js`} is:inline></script>
+  <script is:inline define:vars={{ base }}>
+    window.addEventListener('DOMContentLoaded', () => {
+      if (window.PagefindUI) {
+        new window.PagefindUI({
+          element: '#search',
+          showSubResults: true,
+          showImages: false,
+          bundlePath: `${base}pagefind/`,
+          translations: {
+            placeholder: '搜索博客、小说、项目…',
+            zero_results: '没有找到与 “[SEARCH_TERM]” 相关的内容',
+          },
+        });
+        window.setTimeout(() => document.querySelector('#search input')?.focus(), 60);
+      } else {
+        const note = document.querySelector('#search-dev-note');
+        if (note) note.hidden = false;
+      }
+    });
+  </script>
+</BaseLayout>

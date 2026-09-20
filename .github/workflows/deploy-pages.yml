@@ -1,0 +1,114 @@
+name: Deploy LunaFoundry
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      content_ref:
+        description: Private content branch, tag, or commit SHA
+        required: false
+        default: main
+        type: string
+      reason:
+        description: Trigger reason
+        required: false
+        default: manual
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: lunafoundry-pages
+  cancel-in-progress: true
+
+env:
+  CONTENT_REPOSITORY: ${{ vars.CONTENT_REPOSITORY || 'lunafoundry/content' }}
+  CONTENT_REF: ${{ inputs.content_ref || 'main' }}
+
+jobs:
+  build:
+    name: Build site with private content
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout site
+        uses: actions/checkout@v7
+
+      - name: Checkout private content
+        uses: actions/checkout@v7
+        with:
+          repository: ${{ env.CONTENT_REPOSITORY }}
+          ref: ${{ env.CONTENT_REF }}
+          token: ${{ secrets.CONTENT_REPO_TOKEN }}
+          path: .content-source
+          persist-credentials: false
+
+      - name: Resolve site URL and base path
+        shell: bash
+        run: |
+          echo "SITE_URL=${{ vars.SITE_URL || 'https://lunafoundry.github.io' }}" >> "$GITHUB_ENV"
+          echo "BASE_PATH=${{ vars.BASE_PATH || '/luna-site/' }}" >> "$GITHUB_ENV"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Sync private content
+        run: npm run content:sync -- .content-source
+
+      - name: Validate content
+        run: npm run validate:content
+
+      - name: Type check
+        run: npm run check
+
+      - name: Build Astro + Pagefind
+        run: npm run build
+
+      - name: Check dist links, drafts and index
+        run: npm run check:dist
+
+      - name: Assert no private content is tracked
+        shell: bash
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "::error::Working tree is dirty after the build; private content must never be tracked by the site repo."
+            git status --porcelain
+            exit 1
+          fi
+
+      - name: Print revisions
+        run: |
+          echo "Site SHA:    $GITHUB_SHA"
+          echo "Content ref: $CONTENT_REF"
+          echo "Site URL:    $SITE_URL"
+          echo "Base path:   $BASE_PATH"
+          echo "Reason:      ${{ inputs.reason || 'site-push' }}"
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: ./dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

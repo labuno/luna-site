@@ -1,0 +1,33 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import NovelCard from '@/components/NovelCard.astro';
+import FilterChips from '@/components/FilterChips.astro';
+import { collectTaxonomy } from '@/utils/content';
+
+const novels = (await getCollection('novels')).sort((a, b) => b.data.updated.valueOf() - a.data.updated.valueOf());
+const genres = collectTaxonomy(novels.flatMap((novel) => novel.data.genres));
+---
+<BaseLayout title="小说" description="LunaFoundry 的原创小说与连载作品。">
+  <section class="page-intro">
+    <span class="eyebrow">FICTION</span>
+    <h1>小说书架</h1>
+    <p>故事也使用文件存储、Git 版本管理，与代码一样可以长期保存和迁移。</p>
+  </section>
+
+  <div data-filter-root>
+    <div class="filter-bar">
+      <FilterChips kind="genre" label="题材" chips={genres} resetHref="/novel/" />
+    </div>
+    <p class="filter-status" data-filter-status hidden></p>
+    <div class="grid two-cols">
+      {novels.map((novel) => <NovelCard novel={novel} />)}
+    </div>
+    <p class="empty-state" data-filter-empty hidden>没有匹配的作品。</p>
+  </div>
+
+  <script>
+    import { setupListFilter } from '@/scripts/list-filter.js';
+    setupListFilter();
+  </script>
+</BaseLayout>

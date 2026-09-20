@@ -1,0 +1,32 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { projectStatusLabel, slugify } from '@/utils/content';
+import { sitePath } from '@/utils/paths';
+
+const projects = (await getCollection('projects')).sort((a, b) => Number(b.data.featured) - Number(a.data.featured));
+---
+<BaseLayout title="项目" description="LunaFoundry 的开源软件、实验与长期项目。">
+  <section class="page-intro">
+    <span class="eyebrow">PROJECTS</span><h1>项目</h1>
+    <p>这里用于展示开源软件、实验项目和持续维护的工具。</p>
+  </section>
+  <div class="grid two-cols">
+    {projects.map((project) => (
+      <article class="card project-card" data-pagefind-body>
+        <div class="card-meta"><span>{projectStatusLabel[project.data.status]}</span></div>
+        <h3 data-pagefind-meta="title">{project.data.title}</h3>
+        <p>{project.data.description}</p>
+        <div class="tag-row">
+          {project.data.tags.map((tag) => (
+            <a href={sitePath(`/tags/${encodeURIComponent(slugify(tag))}/`)}>#{tag}</a>
+          ))}
+        </div>
+        <div class="project-links">
+          {project.data.repo && <a href={project.data.repo}>GitHub ↗</a>}
+          {project.data.url && <a href={project.data.url}>Website ↗</a>}
+        </div>
+      </article>
+    ))}
+  </div>
+</BaseLayout>

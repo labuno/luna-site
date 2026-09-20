@@ -1,0 +1,12 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { sitePath } from '@/utils/paths';
+---
+<BaseLayout title="页面不存在" noindex={true}>
+  <section class="not-found">
+    <span class="eyebrow">404</span>
+    <h1>这里还没有被铸造出来。</h1>
+    <p>页面可能被移动、删除，或者从未存在。</p>
+    <a class="button primary" href={sitePath('/')}>返回首页</a>
+  </section>
+</BaseLayout>

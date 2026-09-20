@@ -1,0 +1,30 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { collectTaxonomy } from '@/utils/content';
+import { sitePath } from '@/utils/paths';
+
+const posts = await getCollection('blog', ({ data }) => import.meta.env.DEV || !data.draft);
+const novels = await getCollection('novels');
+const chapters = await getCollection('chapters', ({ data }) => import.meta.env.DEV || !data.draft);
+const projects = await getCollection('projects');
+
+const tags = collectTaxonomy([
+  ...posts.flatMap((post) => post.data.tags),
+  ...novels.flatMap((novel) => novel.data.tags),
+  ...chapters.flatMap((chapter) => chapter.data.tags),
+  ...projects.flatMap((project) => project.data.tags),
+]);
+---
+<BaseLayout title="标签" description="按标签浏览 LunaFoundry 的文章、小说与章节。">
+  <section class="page-intro">
+    <span class="eyebrow">TAGS</span>
+    <h1>标签</h1>
+    <p>标签用于跨内容类型的主题聚合：文章、小说与章节共享同一套标签。</p>
+  </section>
+  <div class="tag-cloud">
+    {tags.map((tag) => (
+      <a href={sitePath(`/tags/${encodeURIComponent(tag.slug)}/`)}>#{tag.name}<span>{tag.count}</span></a>
+    ))}
+  </div>
+</BaseLayout>

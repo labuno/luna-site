@@ -1,0 +1,98 @@
+---
+import { getCollection, type CollectionEntry } from 'astro:content';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { novelStatusLabel, formatDate, slugify } from '@/utils/content';
+import { sitePath } from '@/utils/paths';
+
+export async function getStaticPaths() {
+  const novels = await getCollection('novels');
+  const chapters = await getCollection('chapters', ({ data }) => import.meta.env.DEV || !data.draft);
+  return novels.map((novel) => ({
+    params: { novel: novel.data.slug },
+    props: {
+      novel,
+      chapters: chapters
+        .filter((chapter) => chapter.data.novel === novel.data.slug)
+        .sort((a, b) => a.data.chapter - b.data.chapter),
+    },
+  }));
+}
+
+interface Props {
+  novel: CollectionEntry<'novels'>;
+  chapters: CollectionEntry<'chapters'>[];
+}
+
+const { novel, chapters } = Astro.props;
+const volumes = chapters.reduce((acc, chapter) => {
+  const list = acc.get(chapter.data.volume) ?? [];
+  list.push(chapter);
+  acc.set(chapter.data.volume, list);
+  return acc;
+}, new Map<string, CollectionEntry<'chapters'>[]>());
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Book',
+  name: novel.data.title,
+  description: novel.data.description,
+  author: { '@type': 'Person', name: novel.data.author },
+  ...(novel.data.cover && Astro.site ? { image: new URL(sitePath(novel.data.cover), Astro.site).href } : {}),
+  ...(Astro.site ? { url: new URL(Astro.url.pathname, Astro.site).href } : {}),
+};
+---
+<BaseLayout title={novel.data.title} description={novel.data.description} image={novel.data.cover} ogType="book">
+  <script type="application/ld+json" slot="head" set:html={JSON.stringify(jsonLd)} />
+  <article class="novel-detail" data-pagefind-body>
+    <header class="novel-hero">
+      <div class="novel-cover">
+        {novel.data.cover ? (
+          <img src={sitePath(novel.data.cover)} alt={`《${novel.data.title}》封面`} />
+        ) : (
+          <div class="cover-placeholder">LF</div>
+        )}
+      </div>
+      <div>
+        <span class="eyebrow">{novelStatusLabel[novel.data.status]}</span>
+        <h1 data-pagefind-meta="title">{novel.data.title}</h1>
+        <p>{novel.data.description}</p>
+        <div class="novel-facts">
+          <span>作者 {novel.data.author}</span>
+          <span>{chapters.length} 章</span>
+          <span>更新 {formatDate(novel.data.updated)}</span>
+        </div>
+        <div class="tag-row">
+          {novel.data.genres.map((genre) => (
+            <a href={sitePath(`/novel/?genre=${encodeURIComponent(slugify(genre))}`)}>#{genre}</a>
+          ))}
+          {novel.data.tags.map((tag) => (
+            <a href={sitePath(`/tags/${encodeURIComponent(slugify(tag))}/`)}>#{tag}</a>
+          ))}
+        </div>
+        {chapters[0] && (
+          <a class="button primary" href={sitePath(`/novel/${novel.data.slug}/${chapters[0].data.slug}/`)}>开始阅读</a>
+        )}
+      </div>
+    </header>
+
+    <section class="chapter-index">
+      <div class="section-heading"><div><span class="eyebrow">CONTENTS</span><h2>章节目录</h2></div></div>
+      {[...volumes.entries()].map(([volume, items]) => (
+        <div class="volume-block">
+          <h3>{volume}</h3>
+          <ol class="chapter-list">
+            {items.map((chapter) => (
+              <li>
+                <a href={sitePath(`/novel/${novel.data.slug}/${chapter.data.slug}/`)}>
+                  <span>{String(chapter.data.chapter).padStart(3, '0')}</span>
+                  <strong>{chapter.data.title}</strong>
+                  <time>{formatDate(chapter.data.published)}</time>
+                </a>
+              </li>
+            ))}
+          </ol>
+        </div>
+      ))}
+    </section>
+  </article>
+</BaseLayout>

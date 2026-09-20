@@ -1,0 +1,72 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import TableOfContents from '@/components/TableOfContents.astro';
+import { formatDate, slugify } from '@/utils/content';
+import { sitePath } from '@/utils/paths';
+import { siteConfig } from '@/site.config';
+
+interface Heading {
+  depth: number;
+  slug: string;
+  text: string;
+}
+
+interface Props {
+  title: string;
+  description: string;
+  date: Date;
+  updated?: Date;
+  section?: string;
+  category?: string;
+  tags?: string[];
+  cover?: string;
+  headings?: Heading[];
+}
+
+const { title, description, date, updated, section, category, tags = [], cover, headings = [] } = Astro.props;
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BlogPosting',
+  headline: title,
+  description,
+  datePublished: date.toISOString(),
+  ...(updated ? { dateModified: updated.toISOString() } : {}),
+  ...(cover && Astro.site ? { image: new URL(sitePath(cover), Astro.site).href } : {}),
+  author: { '@type': 'Person', name: siteConfig.author },
+  ...(Astro.site ? { mainEntityOfPage: new URL(Astro.url.pathname, Astro.site).href } : {}),
+};
+---
+<BaseLayout title={title} description={description} image={cover} ogType="article">
+  <script type="application/ld+json" slot="head" set:html={JSON.stringify(jsonLd)} />
+  <div class="article-layout">
+    <article class="prose-wrap" data-pagefind-body>
+      <header class="article-header">
+        <div class="eyebrow">
+          {section && <a href={sitePath(`/blog/?section=${encodeURIComponent(slugify(section))}`)}>{section}</a>}
+          {section && category && <span> · </span>}
+          {category && <a href={sitePath(`/categories/${encodeURIComponent(slugify(category))}/`)}>{category}</a>}
+        </div>
+        <h1 data-pagefind-meta="title">{title}</h1>
+        <p class="lede">{description}</p>
+        <div class="article-meta">
+          <time datetime={date.toISOString()}>发布 {formatDate(date)}</time>
+          {updated && <time datetime={updated.toISOString()}>更新 {formatDate(updated)}</time>}
+        </div>
+        {tags.length > 0 && (
+          <div class="tag-row article-tags">
+            {tags.map((tag) => <a href={sitePath(`/tags/${encodeURIComponent(slugify(tag))}/`)}>#{tag}</a>)}
+          </div>
+        )}
+      </header>
+      {cover && (
+        <figure class="article-cover">
+          <img src={sitePath(cover)} alt={title} loading="lazy" />
+        </figure>
+      )}
+      <div class="prose">
+        <slot />
+      </div>
+    </article>
+    <TableOfContents headings={headings} />
+  </div>
+</BaseLayout>

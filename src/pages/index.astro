@@ -1,0 +1,73 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import BlogCard from '@/components/BlogCard.astro';
+import NovelCard from '@/components/NovelCard.astro';
+import { siteConfig } from '@/site.config';
+import { sitePath } from '@/utils/paths';
+
+const posts = (await getCollection('blog', ({ data }) => !data.draft))
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+const novels = (await getCollection('novels')).sort((a, b) => b.data.updated.valueOf() - a.data.updated.valueOf());
+const projects = (await getCollection('projects')).sort((a, b) => Number(b.data.featured) - Number(a.data.featured));
+
+const featuredPosts = posts.filter((post) => post.data.featured);
+const latestPosts = (featuredPosts.length > 0 ? featuredPosts : posts).slice(0, 4);
+const featuredNovels = novels.filter((novel) => novel.data.featured);
+const shelf = (featuredNovels.length > 0 ? featuredNovels : novels).slice(0, 4);
+---
+<BaseLayout>
+  <section class="hero">
+    <p class="eyebrow">INDEPENDENT BUILDER · WRITER</p>
+    <h1>写代码，也写<span>世界</span>。</h1>
+    <p class="hero-copy">{siteConfig.description}</p>
+    <div class="hero-actions">
+      <a class="button primary" href={sitePath('/blog/')}>阅读博客</a>
+      <a class="button" href={sitePath('/novel/')}>进入小说</a>
+      <a class="text-link" href={siteConfig.github}>GitHub ↗</a>
+    </div>
+  </section>
+
+  <section class="metric-strip" aria-label="站点内容">
+    <div><strong>{posts.length}</strong><span>篇博客</span></div>
+    <div><strong>{novels.length}</strong><span>部小说</span></div>
+    <div><strong>{projects.length}</strong><span>个项目</span></div>
+    <div><strong>Files</strong><span>内容长期存储</span></div>
+  </section>
+
+  <section class="section-block">
+    <div class="section-heading">
+      <div><span class="eyebrow">LATEST WRITING</span><h2>最近博客</h2></div>
+      <a href={sitePath('/blog/')}>查看全部 →</a>
+    </div>
+    <div class="grid two-cols">
+      {latestPosts.map((post) => <BlogCard post={post} />)}
+    </div>
+  </section>
+
+  <section class="section-block">
+    <div class="section-heading">
+      <div><span class="eyebrow">SERIAL FICTION</span><h2>小说连载</h2></div>
+      <a href={sitePath('/novel/')}>查看书架 →</a>
+    </div>
+    <div class="grid two-cols">
+      {shelf.map((novel) => <NovelCard novel={novel} />)}
+    </div>
+  </section>
+
+  <section class="section-block">
+    <div class="section-heading">
+      <div><span class="eyebrow">PROJECTS</span><h2>项目</h2></div>
+      <a href={sitePath('/projects/')}>全部项目 →</a>
+    </div>
+    <div class="grid two-cols">
+      {projects.slice(0, 2).map((project) => (
+        <article class="card project-card">
+          <div class="card-meta"><span>{project.data.status}</span></div>
+          <h3><a href={sitePath('/projects/')}>{project.data.title}</a></h3>
+          <p>{project.data.description}</p>
+        </article>
+      ))}
+    </div>
+  </section>
+</BaseLayout>

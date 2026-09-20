@@ -1,0 +1,23 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { siteConfig } from '@/site.config';
+---
+<BaseLayout title="关于" description="关于 LunaFoundry。">
+  <section class="prose-wrap narrow" data-pagefind-body>
+    <header class="article-header">
+      <span class="eyebrow">ABOUT</span>
+      <h1 data-pagefind-meta="title">关于 LunaFoundry</h1>
+      <p class="lede">一个长期保存内容、持续发布软件、也认真写故事的个人空间。</p>
+    </header>
+    <div class="prose">
+      <h2>这里会有什么？</h2>
+      <p>AI 与软件工程博客、原创小说连载、开源软件与个人项目，以及一些长期积累的技术笔记。</p>
+      <h2>为什么内容使用文件？</h2>
+      <p>Markdown、YAML 与 Git 是这个站点的长期数据层。展示框架和部署平台都可以替换，内容本身不依赖数据库或特定托管商。</p>
+      <h2>内容与代码的边界</h2>
+      <p>网站程序开源，正式内容存放在私有仓库，构建时注入、部署后以静态 HTML 呈现。MIT 许可只覆盖代码，不覆盖原创内容。</p>
+      <h2>联系</h2>
+      <p>项目与代码请访问 <a href={siteConfig.github}>GitHub / lunafoundry</a>。</p>
+    </div>
+  </section>
+</BaseLayout>

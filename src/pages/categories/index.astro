@@ -1,0 +1,23 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { collectTaxonomy } from '@/utils/content';
+import { sitePath } from '@/utils/paths';
+
+const posts = await getCollection('blog', ({ data }) => import.meta.env.DEV || !data.draft);
+const categories = collectTaxonomy(posts.map((post) => post.data.category));
+---
+<BaseLayout title="分类" description="按分类浏览 LunaFoundry 的文章。">
+  <section class="page-intro">
+    <span class="eyebrow">CATEGORIES</span>
+    <h1>分类</h1>
+    <p>二级分类用于内容归档，栏目与标签见博客列表。</p>
+  </section>
+  <div class="category-grid">
+    {categories.map((category) => (
+      <a class="card" href={sitePath(`/categories/${encodeURIComponent(category.slug)}/`)}>
+        <strong>{category.name}</strong><span>{category.count} 篇</span>
+      </a>
+    ))}
+  </div>
+</BaseLayout>

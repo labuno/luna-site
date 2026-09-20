@@ -1,0 +1,41 @@
+---
+import { getCollection, type CollectionEntry } from 'astro:content';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import BlogCard from '@/components/BlogCard.astro';
+import { slugify } from '@/utils/content';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog', ({ data }) => import.meta.env.DEV || !data.draft);
+  const bySlug = new Map<string, { slug: string; name: string; posts: CollectionEntry<'blog'>[] }>();
+  for (const post of posts) {
+    const slug = slugify(post.data.category);
+    const entry = bySlug.get(slug) ?? { slug, name: post.data.category, posts: [] };
+    entry.posts.push(post);
+    bySlug.set(slug, entry);
+  }
+  return [...bySlug.values()].map((entry) => ({
+    params: { category: entry.slug },
+    props: {
+      name: entry.name,
+      posts: entry.posts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf()),
+    },
+  }));
+}
+
+interface Props {
+  name: string;
+  posts: CollectionEntry<'blog'>[];
+}
+
+const { name, posts } = Astro.props;
+---
+<BaseLayout title={`分类：${name}`} description={`${name} 分类下的文章。`}>
+  <section class="page-intro">
+    <span class="eyebrow">CATEGORY</span>
+    <h1>{name}</h1>
+    <p>{posts.length} 篇文章</p>
+  </section>
+  <div class="grid two-cols">
+    {posts.map((post) => <BlogCard post={post} />)}
+  </div>
+</BaseLayout>

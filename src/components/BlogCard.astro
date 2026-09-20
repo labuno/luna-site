@@ -1,0 +1,35 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { formatDate, slugify } from '@/utils/content';
+import { sitePath } from '@/utils/paths';
+
+interface Props {
+  post: CollectionEntry<'blog'>;
+}
+
+const { post } = Astro.props;
+const tagSlugs = post.data.tags.map((tag) => slugify(tag)).join(',');
+---
+<article
+  class="card blog-card"
+  data-filter-item
+  data-section-slug={slugify(post.data.section)}
+  data-tag-slugs={tagSlugs}
+>
+  {post.data.cover && (
+    <a class="card-cover" href={sitePath(`/blog/${post.data.slug}/`)} tabindex="-1" aria-hidden="true">
+      <img src={sitePath(post.data.cover)} alt="" loading="lazy" />
+    </a>
+  )}
+  <div class="card-meta">
+    <span>{post.data.section} · {post.data.category}</span>
+    <time datetime={post.data.date.toISOString()}>{formatDate(post.data.date)}</time>
+  </div>
+  <h3><a href={sitePath(`/blog/${post.data.slug}/`)}>{post.data.title}</a></h3>
+  <p>{post.data.description}</p>
+  <div class="tag-row">
+    {post.data.tags.slice(0, 4).map((tag) => (
+      <a href={sitePath(`/tags/${encodeURIComponent(slugify(tag))}/`)}>#{tag}</a>
+    ))}
+  </div>
+</article>

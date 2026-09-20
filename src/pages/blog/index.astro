@@ -1,0 +1,37 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import BlogCard from '@/components/BlogCard.astro';
+import FilterChips from '@/components/FilterChips.astro';
+import { collectTaxonomy } from '@/utils/content';
+
+const posts = (await getCollection('blog', ({ data }) => import.meta.env.DEV || !data.draft))
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+
+const sections = collectTaxonomy(posts.map((post) => post.data.section));
+const tags = collectTaxonomy(posts.flatMap((post) => post.data.tags));
+---
+<BaseLayout title="博客" description="LunaFoundry 的 AI、软件、开源与创作笔记。">
+  <section class="page-intro">
+    <span class="eyebrow">BLOG</span>
+    <h1>博客</h1>
+    <p>关于 AI、工程、产品与持续创造的记录。</p>
+  </section>
+
+  <div data-filter-root>
+    <div class="filter-bar">
+      <FilterChips kind="section" label="栏目" chips={sections} resetHref="/blog/" />
+      <FilterChips kind="tags" label="标签" chips={tags} resetHref="/blog/" />
+    </div>
+    <p class="filter-status" data-filter-status hidden></p>
+    <div class="grid two-cols">
+      {posts.map((post) => <BlogCard post={post} />)}
+    </div>
+    <p class="empty-state" data-filter-empty hidden>没有匹配的文章，试试减少筛选条件。</p>
+  </div>
+
+  <script>
+    import { setupListFilter } from '@/scripts/list-filter.js';
+    setupListFilter();
+  </script>
+</BaseLayout>

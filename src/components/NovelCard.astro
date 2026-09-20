@@ -1,0 +1,27 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { novelStatusLabel, formatDate, slugify } from '@/utils/content';
+import { sitePath } from '@/utils/paths';
+
+interface Props {
+  novel: CollectionEntry<'novels'>;
+}
+
+const { novel } = Astro.props;
+---
+<article class="card novel-card" data-filter-item data-genre-slugs={novel.data.genres.map((genre) => slugify(genre)).join(',')}>
+  <div class="novel-symbol" aria-hidden="true">
+    {novel.data.cover ? <img src={sitePath(novel.data.cover)} alt="" loading="lazy" /> : '◒'}
+  </div>
+  <div>
+    <div class="card-meta">
+      <span>{novelStatusLabel[novel.data.status]}</span>
+      <span>更新 {formatDate(novel.data.updated)}</span>
+    </div>
+    <h3><a href={sitePath(`/novel/${novel.data.slug}/`)}>{novel.data.title}</a></h3>
+    <p>{novel.data.description}</p>
+    <div class="tag-row">
+      {novel.data.genres.map((genre) => <span>#{genre}</span>)}
+    </div>
+  </div>
+</article>

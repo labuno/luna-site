@@ -1,0 +1,7 @@
+title: "LunaFoundry 内容站"
+slug: "lunafoundry-site"
+description: "Astro + Pagefind + GitHub Actions 的双仓库内容站：程序公开、内容私有、构建时合并。"
+repo: "https://github.com/lunafoundry/luna-site"
+status: "active"
+tags: ["Astro", "Static Site", "GitHub Pages"]
+featured: true
