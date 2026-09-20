@@ -7,6 +7,7 @@
  *  - Pagefind index, sitemap, RSS and robots.txt exist
  */
 import { access, readdir, readFile } from 'node:fs/promises';
+import { brotliDecompressSync, gunzipSync } from 'node:zlib';
 import path from 'node:path';
 import process from 'node:process';
 import { fileURLToPath } from 'node:url';
@@ -141,6 +142,34 @@ export async function checkDist({ distDir, base = '/luna-site/', drafts = [], re
     for (const draft of drafts) {
       if (rss.includes(draft.route)) {
         errors.push(`${draft.file}: draft route "${draft.route}" leaked into rss.xml`);
+      }
+    }
+  }
+
+  // Drafts must not be present in the Pagefind fragments either
+  if (drafts.length > 0) {
+    const fragmentDir = path.join(distDir, 'pagefind', 'fragment');
+    let fragments = [];
+    try {
+      fragments = (await readdir(fragmentDir)).filter((name) => name.endsWith('.pf_fragment'));
+    } catch {
+      fragments = [];
+    }
+    const decoded = [];
+    for (const name of fragments) {
+      const buffer = await readFile(path.join(fragmentDir, name));
+      for (const decompress of [gunzipSync, brotliDecompressSync]) {
+        try {
+          decoded.push(decompress(buffer).toString('utf8'));
+          break;
+        } catch {
+          // try the next codec
+        }
+      }
+    }
+    for (const draft of drafts) {
+      if (decoded.some((fragment) => fragment.includes(draft.route))) {
+        errors.push(`${draft.file}: draft route "${draft.route}" leaked into the Pagefind index`);
       }
     }
   }

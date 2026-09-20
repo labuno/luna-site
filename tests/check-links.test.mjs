@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtemp, mkdir, writeFile } from 'node:fs/promises';
+import { gzipSync } from 'node:zlib';
 import os from 'node:os';
 import path from 'node:path';
 import { checkDist } from '../scripts/check-links.mjs';
@@ -66,6 +67,17 @@ test('草稿出现在 RSS 中被报告', async () => {
     drafts: [{ collection: 'blog', route: '/blog/secret-draft/', file: 'content/blog/2026/draft.md' }],
   });
   assert.ok(result.errors.some((error) => /leaked into rss\.xml/.test(error)), result.errors.join('\n'));
+});
+
+test('草稿进入 Pagefind 索引被报告', async () => {
+  const dist = await makeDist();
+  const payload = Buffer.from(JSON.stringify({ url: '/blog/secret-draft/', content: '草稿' }));
+  await dist.write('pagefind/fragment/zh-cn_0000000.pf_fragment', gzipSync(payload));
+  const result = await checkDist({
+    ...baseOptions(dist.root),
+    drafts: [{ collection: 'blog', route: '/blog/secret-draft/', file: 'content/blog/2026/draft.md' }],
+  });
+  assert.ok(result.errors.some((error) => /leaked into the Pagefind index/.test(error)), result.errors.join('\n'));
 });
 
 test('缺少 Pagefind 索引被报告', async () => {
