@@ -5,15 +5,14 @@
 | GitHub 账号 | lunafoundry |
 | --- | --- |
 | 公开项目 | lunafoundry/luna-site  (Public) |
-| 内容项目 | lunafoundry/content  (Private) |
+| 内容项目 | lunafoundry/luna-ore  (Private) |
 | 第一阶段部署 | GitHub Pages |
 | 核心原则 | Content First · Git First · Static First · Hosting Agnostic |
 
 > 用途：作为开发人员实施、联调、部署和后续维护的唯一设计基线。
 > 版本：V1.0   ·   日期：2026-09-20
-> 说明：本文档中的仓库命名已按最终约定统一为 luna-site + content；若旧 Starter 包中仍出现 lunafoundry.github.io / lunafoundry-content，应以本文档命名为准。
-
-> 转换说明：本文由设计基线 `LunaFoundry_双仓库网站系统设计与开发交付文档_V1.0.docx` 自动转换，内容与原件一致；如有冲突以 docx 原件为准。转换脚本：`docs/tools/docx-to-markdown.py`。
+> 说明：本文档中的仓库命名已按最终约定统一为 luna-site + luna-ore；若旧材料中仍出现 lunafoundry.github.io / lunafoundry-content / 裸名 content，应以本文档命名为准。
+> 转换说明：本文由设计基线 `LunaFoundry_双仓库网站系统设计与开发交付文档_V1.0.docx` 自动转换；仓库名已从原稿 `content` 更新为 `luna-ore`，其余以实施仓库为准。
 
 ---
 
@@ -23,7 +22,7 @@
 | --- | --- |
 | 系统名称 | LunaFoundry Content Site |
 | 网站代码仓库 | lunafoundry/luna-site（Public） |
-| 内容源仓库 | lunafoundry/content（Private） |
+| 内容源仓库 | lunafoundry/luna-ore（Private） |
 | 技术栈 | Astro 7 / TypeScript / Pagefind / Markdown / YAML |
 | 数据存储 | 文件 + Git；不使用数据库作为内容主存储 |
 | 部署目标 | 阶段 1：GitHub Pages；阶段 2：VPS/Nginx + CDN |
@@ -84,7 +83,7 @@ LunaFoundry 的第一阶段目标是建设一个面向公开访问的个人内�
 - content/ 与 public/media/ 为构建工作区，不得成为真实内容的持久存储。
 - 必须通过 .gitignore 防止同步后的私有内容被误提交。
 
-### 2.2 Private：lunafoundry/content
+### 2.2 Private：lunafoundry/luna-ore
 
 该仓库是 LunaFoundry 的内容源仓库。博客、小说、媒体、草稿和项目介绍均在此维护。它不向匿名访问者开放，也不随 luna-site 的开源许可证授权。
 
@@ -100,9 +99,9 @@ LunaFoundry 的第一阶段目标是建设一个面向公开访问的个人内�
 | 旧 Starter 名称 | 最终名称 | 开发动作 |
 | --- | --- | --- |
 | lunafoundry.github.io | luna-site | 重命名目录、package/README/Workflow 默认仓库名。 |
-| lunafoundry-content | content | 重命名目录并更新同步脚本默认路径。 |
+| lunafoundry-content | luna-ore | 重命名目录并更新同步脚本默认路径。 |
 | lunafoundry/lunafoundry.github.io | lunafoundry/luna-site | 更新 SITE_REPOSITORY。 |
-| lunafoundry/lunafoundry-content | lunafoundry/content | 更新 CONTENT_REPOSITORY。 |
+| lunafoundry/lunafoundry-content | lunafoundry/luna-ore | 更新 CONTENT_REPOSITORY。 |
 
 ## 3. 总体架构与发布数据流
 
@@ -111,7 +110,7 @@ LunaFoundry 的第一阶段目标是建设一个面向公开访问的个人内�
 
         PUBLIC                                      PRIVATE
 +-------------------------+               +-------------------------+
-| luna-site               |               | content                 |
+| luna-site               |               | luna-ore                |
 |                         |               |                         |
 | Astro / TypeScript      |               | blog/*.md               |
 | UI / Layout / CSS       |               | novels/*/*.md           |
@@ -127,7 +126,7 @@ LunaFoundry 的第一阶段目标是建设一个面向公开访问的个人内�
       +--------------------+
       | GitHub Actions     |
       | checkout site      |
-      | checkout content   |
+      | checkout luna-ore  |
       | sync + validate    |
       | Astro build        |
       | Pagefind index     |
@@ -143,13 +142,13 @@ LunaFoundry 的第一阶段目标是建设一个面向公开访问的个人内�
 
 ### 3.1 发布的关键语义
 
-1.  用户向 content/main 推送内容。
+1.  用户向 luna-ore/main 推送内容。
 
-2.  content 仓库的 notify-site Workflow 仅负责触发 luna-site 的 deploy-pages Workflow，并把当前 GITHUB_SHA 作为 content_ref 参数传过去。
+2.  luna-ore 仓库的 notify-site Workflow 仅负责触发 luna-site 的 deploy-pages Workflow，并把当前 GITHUB_SHA 作为 content_ref 参数传过去。
 
-3.  luna-site 使用 CONTENT_REPO_TOKEN 只读 checkout 私有 content，并固定到指定 SHA，而不是模糊地读取“当时的 main”。
+3.  luna-site 使用 CONTENT_REPO_TOKEN 只读 checkout 私有 luna-ore，并固定到指定 SHA，而不是模糊地读取“当时的 main”。
 
-4.  同步脚本把 content/content/ 临时复制到 luna-site/content/，把 content/media/ 临时复制到 luna-site/public/media/。
+4.  同步脚本把 luna-ore/content/ 临时复制到 luna-site/content/，把 luna-ore/media/ 临时复制到 luna-site/public/media/。
 
 5.  Astro 校验 Schema 并构建静态 HTML；Pagefind 在 dist/ 上生成全文搜索索引。
 
@@ -239,7 +238,7 @@ luna-site/
 ### 5.1 推荐目录
 
 ```text
-content/
+luna-ore/
 ├── .github/workflows/notify-site.yml
 ├── content/
 │   ├── blog/
@@ -381,7 +380,7 @@ GitHub Pages / Nginx
 
 ### 7.1 触发链路
 
-1.  content/main 的内容或 media 发生 push。
+1.  luna-ore/main 的内容或 media 发生 push。
 
 2.  Private Workflow 使用 SITE_WORKFLOW_TOKEN 调用 luna-site 的 workflow_dispatch。
 
@@ -389,7 +388,7 @@ GitHub Pages / Nginx
 
 4.  Public Workflow checkout luna-site 自身。
 
-5.  使用 CONTENT_REPO_TOKEN checkout lunafoundry/content@content_ref 到 .content-source。
+5.  使用 CONTENT_REPO_TOKEN checkout lunafoundry/luna-ore@content_ref 到 .content-source。
 
 6.  执行 content:sync、Astro check、Astro build、Pagefind。
 
@@ -399,16 +398,16 @@ GitHub Pages / Nginx
 
 ### 7.2 为什么构建放在 Public luna-site
 
-Private content 仓库只执行“触发”任务，通常一个极短 Job；真正耗时的 Node 安装、Astro 构建、Pagefind 和 Pages 部署全部在 Public luna-site 完成。这既降低私有 Actions 使用量，也让所有网站构建逻辑集中在程序仓库。
+Private luna-ore 仓库只执行“触发”任务，通常一个极短 Job；真正耗时的 Node 安装、Astro 构建、Pagefind 和 Pages 部署全部在 Public luna-site 完成。这既降低私有 Actions 使用量，也让所有网站构建逻辑集中在程序仓库。
 
 ### 7.3 Secrets 与 Variables
 
 | 位置 | 名称 | 权限/示例 | 用途 |
 | --- | --- | --- | --- |
-| luna-site Secret | CONTENT_REPO_TOKEN | Fine-grained PAT；content: Contents Read | 读取私有内容 |
-| content Secret | SITE_WORKFLOW_TOKEN | Fine-grained PAT；luna-site: Actions Write | 触发网站 Workflow |
-| luna-site Variable | CONTENT_REPOSITORY | lunafoundry/content | 内容仓库标识 |
-| content Variable | SITE_REPOSITORY | lunafoundry/luna-site | 网站仓库标识 |
+| luna-site Secret | CONTENT_REPO_TOKEN | Fine-grained PAT；luna-ore: Contents Read | 读取私有内容 |
+| luna-ore Secret | SITE_WORKFLOW_TOKEN | Fine-grained PAT；luna-site: Actions Write | 触发网站 Workflow |
+| luna-site Variable | CONTENT_REPOSITORY | lunafoundry/luna-ore | 内容仓库标识 |
+| luna-ore Variable | SITE_REPOSITORY | lunafoundry/luna-site | 网站仓库标识 |
 | luna-site Variable | SITE_URL | https://lunafoundry.github.io | Astro site 基础 URL |
 | luna-site Variable | BASE_PATH | /luna-site/ | GitHub Pages 项目路径 |
 
@@ -440,11 +439,11 @@ $ git commit -m "Initialize LunaFoundry site"
 $ gh repo create lunafoundry/luna-site --public --source=. --remote=origin --push
 
 # Private Content
-$ cd ../content
+$ cd ../luna-ore
 $ git init -b main
 $ git add .
-$ git commit -m "Initialize LunaFoundry content"
-$ gh repo create lunafoundry/content --private --source=. --remote=origin --push
+$ git commit -m "Initialize LunaFoundry luna-ore"
+$ gh repo create lunafoundry/luna-ore --private --source=. --remote=origin --push
 ```
 
 ### 8.2 配置 Repository Variables
@@ -452,10 +451,10 @@ $ gh repo create lunafoundry/content --private --source=. --remote=origin --push
 ```bash
 $ gh variable set CONTENT_REPOSITORY \
     --repo lunafoundry/luna-site \
-    --body "lunafoundry/content"
+    --body "lunafoundry/luna-ore"
 
 $ gh variable set SITE_REPOSITORY \
-    --repo lunafoundry/content \
+    --repo lunafoundry/luna-ore \
     --body "lunafoundry/luna-site"
 
 $ gh variable set SITE_URL \
@@ -469,13 +468,13 @@ $ gh variable set BASE_PATH \
 
 ### 8.3 配置 Secrets
 
-先在 GitHub 创建两个 Fine-grained PAT。SITE_WORKFLOW_TOKEN 仅授权 luna-site 的 Actions: Write；CONTENT_REPO_TOKEN 仅授权 content 的 Contents: Read。随后通过 gh 写入 Secret：
+先在 GitHub 创建两个 Fine-grained PAT。SITE_WORKFLOW_TOKEN 仅授权 luna-site 的 Actions: Write；CONTENT_REPO_TOKEN 仅授权 luna-ore 的 Contents: Read。随后通过 gh 写入 Secret：
 
 ```bash
 $ gh secret set CONTENT_REPO_TOKEN --repo lunafoundry/luna-site
 # 按提示粘贴只读 content PAT
 
-$ gh secret set SITE_WORKFLOW_TOKEN --repo lunafoundry/content
+$ gh secret set SITE_WORKFLOW_TOKEN --repo lunafoundry/luna-ore
 # 按提示粘贴仅 Actions Write 的 site PAT
 ```
 
@@ -495,7 +494,7 @@ $ gh run watch --repo lunafoundry/luna-site
 ### 8.5 日常发布
 
 ```bash
-$ cd content
+$ cd luna-ore
 $ ./scripts/new-blog.sh agent-runtime "Agent Runtime 到底解决什么问题" "Agent"
 # 编辑文章，将 draft 改为 false
 
@@ -518,7 +517,7 @@ $ gh workflow run deploy-pages.yml \
 
 # 查看最近运行
 $ gh run list --repo lunafoundry/luna-site --limit 10
-$ gh run list --repo lunafoundry/content --limit 10
+$ gh run list --repo lunafoundry/luna-ore --limit 10
 
 # 查看失败日志
 $ gh run view <RUN_ID> --repo lunafoundry/luna-site --log-failed
@@ -531,17 +530,17 @@ $ gh run view <RUN_ID> --repo lunafoundry/luna-site --log-failed
 ```text
 workspace/
 ├── luna-site/
-└── content/
+└── luna-ore/
 ```
 
-两个仓库保持为同级目录。luna-site 的同步脚本默认支持从 ../content 读取，这样本地开发体验与 CI 构建逻辑一致。
+两个仓库保持为同级目录。luna-site 的同步脚本默认支持从 ../luna-ore 读取，这样本地开发体验与 CI 构建逻辑一致。
 
 ### 9.2 第一次启动
 
 ```bash
 $ cd luna-site
 $ npm install
-$ npm run content:sync -- ../content
+$ npm run content:sync -- ../luna-ore
 $ npm run check
 $ npm run dev
 ```
@@ -550,7 +549,7 @@ $ npm run dev
 
 ```bash
 $ cd luna-site
-$ npm run content:sync -- ../content
+$ npm run content:sync -- ../luna-ore
 $ npm run check
 $ npm run build
 
@@ -564,8 +563,8 @@ Public luna-site 的 pull_request CI 不应依赖 private content Token，否则
 | 场景 | 内容源 | 是否需要私有 Token |
 | --- | --- | --- |
 | Public PR CI | luna-site/examples | 否 |
-| 本地 UI 开发 | ../content 或 examples | 视开发者权限 |
-| main 自动部署 | lunafoundry/content | 是 |
+| 本地 UI 开发 | ../luna-ore 或 examples | 视开发者权限 |
+| main 自动部署 | lunafoundry/luna-ore | 是 |
 | 内容发布触发 | content 当前 SHA | SITE_WORKFLOW_TOKEN |
 
 ## 10. 安全、权限与版权设计
@@ -677,7 +676,7 @@ content -> Astro -> Pagefind -> dist -> rsync/Docker -> Nginx -> CDN
 ## 14. 开发任务拆分与验收标准
 
 ### 14.1 Phase 1：仓库与基础构建
-- 按最终命名创建 luna-site Public 和 content Private。
+- 按最终命名创建 luna-site Public 和 luna-ore Private。
 - 将旧 Starter 中的仓库名全部替换。
 - 完成 local sync、demo build、private checkout、Pages workflow。
 - 完成 BASE_PATH 与自定义域名兼容。
@@ -722,7 +721,7 @@ content -> Astro -> Pagefind -> dist -> rsync/Docker -> Nginx -> CDN
 
 ## 附录 A. Workflow 参考实现
 
-### A.1 content/.github/workflows/notify-site.yml
+### A.1 luna-ore/.github/workflows/notify-site.yml
 
 ```yaml
 name: Publish Content
@@ -795,7 +794,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  CONTENT_REPOSITORY: ${{ vars.CONTENT_REPOSITORY || 'lunafoundry/content' }}
+  CONTENT_REPOSITORY: ${{ vars.CONTENT_REPOSITORY || 'lunafoundry/luna-ore' }}
   CONTENT_REF: ${{ inputs.content_ref || 'main' }}
 
 jobs:
@@ -869,12 +868,12 @@ jobs:
 | --- | --- |
 | 触发指定内容版本 | gh workflow run deploy-pages.yml --repo lunafoundry/luna-site -f content_ref=<SHA> |
 | 看站点运行 | gh run list --repo lunafoundry/luna-site --limit 10 |
-| 看内容触发运行 | gh run list --repo lunafoundry/content --limit 10 |
+| 看内容触发运行 | gh run list --repo lunafoundry/luna-ore --limit 10 |
 | 看失败日志 | gh run view <RUN_ID> --repo lunafoundry/luna-site --log-failed |
-| 设置 Site 变量 | gh variable set CONTENT_REPOSITORY --repo lunafoundry/luna-site --body lunafoundry/content |
-| 设置 Content 变量 | gh variable set SITE_REPOSITORY --repo lunafoundry/content --body lunafoundry/luna-site |
+| 设置 Site 变量 | gh variable set CONTENT_REPOSITORY --repo lunafoundry/luna-site --body lunafoundry/luna-ore |
+| 设置 Content 变量 | gh variable set SITE_REPOSITORY --repo lunafoundry/luna-ore --body lunafoundry/luna-site |
 | 写入读取 Token | gh secret set CONTENT_REPO_TOKEN --repo lunafoundry/luna-site |
-| 写入触发 Token | gh secret set SITE_WORKFLOW_TOKEN --repo lunafoundry/content |
+| 写入触发 Token | gh secret set SITE_WORKFLOW_TOKEN --repo lunafoundry/luna-ore |
 
 ## 附录 C. 开发人员交付清单
 

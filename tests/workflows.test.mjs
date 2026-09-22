@@ -48,8 +48,8 @@ test('deploy-pages.yml 满足文档 7.1-7.4 的约束', async () => {
   assert.equal(checkoutContent.with.repository, '${{ env.CONTENT_REPOSITORY }}');
   assert.match(
     JSON.stringify(workflow),
-    /vars\.CONTENT_REPOSITORY \|\| 'lunafoundry\/content'/,
-    '内容仓库默认值必须是 lunafoundry/content',
+    /vars\.CONTENT_REPOSITORY \|\| 'lunafoundry\/luna-ore'/,
+    '内容仓库默认值必须是 lunafoundry/luna-ore',
   );
   assert.equal(checkoutContent.with['persist-credentials'], false);
   assert.match(String(checkoutContent.with.token), /secrets\.CONTENT_REPO_TOKEN/);
@@ -73,7 +73,7 @@ test('deploy-pages.yml 满足文档 7.1-7.4 的约束', async () => {
 
 test('notify-site.yml 触发站点构建并绑定 content SHA', async () => {
   const workflow = parseYaml(
-    await readFile(new URL('../../content/.github/workflows/notify-site.yml', import.meta.url), 'utf8'),
+    await readFile(new URL('../../luna-ore/.github/workflows/notify-site.yml', import.meta.url), 'utf8'),
   );
   const body = stepText(allSteps(workflow));
   assert.match(body, /secrets\.SITE_WORKFLOW_TOKEN/);

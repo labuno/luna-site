@@ -1,7 +1,7 @@
 # luna-site
 
 LunaFoundry 的网站程序仓库（Public）。Astro + Pagefind 静态站点，内容来自私有仓库
-`lunafoundry/content`，构建时注入并部署到 GitHub Pages（后续可无痛迁移到 VPS/Nginx）。
+`lunafoundry/luna-ore`，构建时注入并部署到 GitHub Pages（后续可无痛迁移到 VPS/Nginx）。
 
 - 内容唯一事实源：Markdown / YAML / 媒体文件 + Git
 - 程序公开、内容私有：真实内容不进入本仓库的 Git 历史
@@ -11,7 +11,7 @@ LunaFoundry 的网站程序仓库（Public）。Astro + Pagefind 静态站点，
 ## 架构
 
 ```text
-lunafoundry/content (Private)                lunafoundry/luna-site (Public)
+lunafoundry/luna-ore (Private)                lunafoundry/luna-site (Public)
 content/blog/*.md  novels/**  projects/*.yaml       Astro 页面 / 组件 / Schema
 media/**                                            scripts/ + Pagefind + CI
         │                                                   ▲
@@ -70,9 +70,9 @@ npm run dev:demo
 
 # 使用真实私有内容（两个仓库保持同级目录）
 git clone git@github.com:lunafoundry/luna-site.git
-git clone git@github.com:lunafoundry/content.git
+git clone git@github.com:lunafoundry/luna-ore.git
 cd luna-site
-npm run content:sync -- ../content
+npm run content:sync -- ../luna-ore
 npm run dev
 ```
 
@@ -81,7 +81,7 @@ npm run dev
 | 命令 | 作用 |
 |------|------|
 | `npm run dev` | 开发服务器（使用 `content/` 工作区现有内容） |
-| `npm run content:sync -- ../content` | 把私有内容同步到工作区（每次先清空） |
+| `npm run content:sync -- ../luna-ore` | 把私有内容同步到工作区（每次先清空） |
 | `npm run content:demo` | 用 `examples/` 覆盖工作区内容 |
 | `npm run validate:content` | 内容校验：必填字段、slug/章节唯一、媒体存在、草稿清单 |
 | `npm run check` | `astro check` 类型与 Schema 检查 |
@@ -200,7 +200,7 @@ gh run view <RUN_ID> --repo lunafoundry/luna-site --log-failed
 
 ```bash
 npm ci
-npm run content:sync -- /srv/lunafoundry/content
+npm run content:sync -- /srv/lunafoundry/luna-ore
 npm run validate:content && npm run build && npm run check:dist
 # dist/ 可直接由 Nginx 托管
 rsync -az --delete dist/ deploy@vps:/srv/www/lunafoundry/

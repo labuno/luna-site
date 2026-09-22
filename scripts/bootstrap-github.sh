@@ -16,8 +16,8 @@ set -euo pipefail
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 owner="${GITHUB_OWNER:-lunafoundry}"
 site_repo="${SITE_REPO:-luna-site}"
-content_repo="${CONTENT_REPO:-content}"
-content_dir="${CONTENT_DIR:-$root/../content}"
+content_repo="${CONTENT_REPO:-luna-ore}"
+content_dir="${CONTENT_DIR:-$root/../luna-ore}"
 git_protocol="${GIT_PROTOCOL:-ssh}"
 ssh_alias="${SSH_HOST_ALIAS:-github-$owner}"
 dry_run=0
@@ -138,7 +138,7 @@ account_id="$(gh api "users/$owner" --jq .id)"
 account_email() { echo "${account_id}+${owner}@users.noreply.github.com"; }
 
 create_repo_if_missing "$owner/$site_repo" public "LunaFoundry public Astro + Pagefind site engine"
-create_repo_if_missing "$owner/$content_repo" private "Private LunaFoundry writing and media source"
+create_repo_if_missing "$owner/$content_repo" private "Private LunaFoundry writing and media ore"
 
 say "写入 Repository Variables..."
 gh variable set CONTENT_REPOSITORY --repo "$owner/$site_repo" --body "$owner/$content_repo"

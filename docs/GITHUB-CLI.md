@@ -9,7 +9,7 @@
 ```text
 workspace/
 ├── luna-site/
-└── content/
+└── luna-ore/
 ```
 
 ## 1. 创建两个仓库
@@ -22,22 +22,22 @@ git add .
 git commit -m "Initialize LunaFoundry site"
 gh repo create lunafoundry/luna-site --public --source=. --remote=origin --push
 
-# Private：内容源
-cd ../content
+# Private：内容源（写作与媒体原料）
+cd ../luna-ore
 git init -b main
 git add .
-git commit -m "Initialize LunaFoundry content"
-gh repo create lunafoundry/content --private --source=. --remote=origin --push
+git commit -m "Initialize LunaFoundry luna-ore"
+gh repo create lunafoundry/luna-ore --private --source=. --remote=origin --push
 ```
 
 ## 2. 配置 Repository Variables
 
 ```bash
-gh variable set CONTENT_REPOSITORY --repo lunafoundry/luna-site --body "lunafoundry/content"
+gh variable set CONTENT_REPOSITORY --repo lunafoundry/luna-site --body "lunafoundry/luna-ore"
 gh variable set SITE_URL --repo lunafoundry/luna-site --body "https://lunafoundry.github.io"
 gh variable set BASE_PATH --repo lunafoundry/luna-site --body "/luna-site/"
 
-gh variable set SITE_REPOSITORY --repo lunafoundry/content --body "lunafoundry/luna-site"
+gh variable set SITE_REPOSITORY --repo lunafoundry/luna-ore --body "lunafoundry/luna-site"
 ```
 
 ## 3. 创建 Fine-grained PAT 并写入 Secrets
@@ -46,12 +46,12 @@ gh variable set SITE_REPOSITORY --repo lunafoundry/content --body "lunafoundry/l
 
 | Token | 授权范围 | 权限 |
 |-------|----------|------|
-| `CONTENT_REPO_TOKEN` | 仅 `lunafoundry/content` | Contents: Read |
+| `CONTENT_REPO_TOKEN` | 仅 `lunafoundry/luna-ore` | Contents: Read |
 | `SITE_WORKFLOW_TOKEN` | 仅 `lunafoundry/luna-site` | Actions: Write |
 
 ```bash
-gh secret set CONTENT_REPO_TOKEN --repo lunafoundry/luna-site   # 粘贴只读 content PAT
-gh secret set SITE_WORKFLOW_TOKEN --repo lunafoundry/content    # 粘贴 Actions Write 的 site PAT
+gh secret set CONTENT_REPO_TOKEN --repo lunafoundry/luna-site   # 粘贴只读 luna-ore PAT
+gh secret set SITE_WORKFLOW_TOKEN --repo lunafoundry/luna-ore   # 粘贴 Actions Write 的 site PAT
 ```
 
 不要使用 Classic PAT 的全 `repo` 范围；token 不得写入代码、`.env.example` 或前端变量。
@@ -78,7 +78,7 @@ gh run watch --repo lunafoundry/luna-site
 ## 6. 日常发布
 
 ```bash
-cd content
+cd luna-ore
 ./scripts/new-blog.sh agent-runtime "Agent Runtime 到底解决什么问题" "Agent" "AI"
 # 编辑文章，把 draft 改为 false
 ./scripts/publish.sh "Publish Agent Runtime article"
@@ -96,7 +96,7 @@ gh workflow run deploy-pages.yml --repo lunafoundry/luna-site \
 gh workflow run deploy-pages.yml --repo lunafoundry/luna-site --ref <SITE_SHA>
 
 gh run list --repo lunafoundry/luna-site --limit 10
-gh run list --repo lunafoundry/content --limit 10
+gh run list --repo lunafoundry/luna-ore --limit 10
 gh run view <RUN_ID> --repo lunafoundry/luna-site --log-failed
 ```
 

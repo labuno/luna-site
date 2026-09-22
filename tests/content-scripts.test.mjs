@@ -10,7 +10,7 @@ import { promisify } from 'node:util';
 import { validateContent } from '../scripts/validate-content.mjs';
 
 const run = promisify(execFile);
-const CONTENT_REPO = fileURLToPath(new URL('../../content', import.meta.url));
+const CONTENT_REPO = fileURLToPath(new URL('../../luna-ore', import.meta.url));
 
 async function makeContentRoot() {
   const root = await mkdtemp(path.join(os.tmpdir(), 'lf-content-root-'));
@@ -80,7 +80,7 @@ test('非法 slug 会被拒绝', async () => {
 
 test('publish.sh 在没有改动时不产生提交，有改动时提交', async () => {
   const root = await makeContentRoot();
-  await run('git', ['init', '-b', 'main'], { cwd: root });
+  await run('git', ['init', '-b', 'main', '--template='], { cwd: root });
   await run('git', ['config', 'user.email', 'test@example.com'], { cwd: root });
   await run('git', ['config', 'user.name', 'Test'], { cwd: root });
   await writeFile(path.join(root, 'content/.gitkeep'), '');

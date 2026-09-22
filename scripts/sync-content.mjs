@@ -78,7 +78,7 @@ const invokedDirectly =
   process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 
 if (invokedDirectly) {
-  const input = process.argv[2] || process.env.CONTENT_SOURCE_DIR || '../content';
+  const input = process.argv[2] || process.env.CONTENT_SOURCE_DIR || '../luna-ore';
   const sourceRoot = path.resolve(repoRoot, input);
   try {
     await syncContent({ sourceRoot });

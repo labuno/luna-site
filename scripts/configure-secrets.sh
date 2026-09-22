@@ -9,7 +9,7 @@ set -euo pipefail
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 owner="${GITHUB_OWNER:-lunafoundry}"
 site_repo="${SITE_REPO:-luna-site}"
-content_repo="${CONTENT_REPO:-content}"
+content_repo="${CONTENT_REPO:-luna-ore}"
 
 command -v gh >/dev/null 2>&1 || { echo "缺少 gh CLI" >&2; exit 1; }
 gh auth status >/dev/null

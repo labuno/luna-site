@@ -8,7 +8,7 @@ import { promisify } from 'node:util';
 
 const run = promisify(execFile);
 const SITE_SCRIPTS = fileURLToPath(new URL('../scripts', import.meta.url));
-const CONTENT_SCRIPTS = fileURLToPath(new URL('../../content/scripts', import.meta.url));
+const CONTENT_SCRIPTS = fileURLToPath(new URL('../../luna-ore/scripts', import.meta.url));
 
 async function shellScripts(dir) {
   return (await readdir(dir)).filter((name) => name.endsWith('.sh')).map((name) => path.join(dir, name));

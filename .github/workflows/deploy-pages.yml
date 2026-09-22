@@ -24,7 +24,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  CONTENT_REPOSITORY: ${{ vars.CONTENT_REPOSITORY || 'lunafoundry/content' }}
+  CONTENT_REPOSITORY: ${{ vars.CONTENT_REPOSITORY || 'lunafoundry/luna-ore' }}
   CONTENT_REF: ${{ inputs.content_ref || 'main' }}
 
 jobs:

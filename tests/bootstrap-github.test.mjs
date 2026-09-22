@@ -17,8 +17,8 @@ test('默认使用 lunafoundry 账号与 SSH 别名远端', async () => {
   const { stdout } = await dryRun();
   assert.match(stdout, /账号:\s+lunafoundry/);
   assert.match(stdout, /git@github-lunafoundry:lunafoundry\/luna-site\.git/);
-  assert.match(stdout, /git@github-lunafoundry:lunafoundry\/content\.git/);
-  assert.match(stdout, /CONTENT_REPOSITORY\s*=\s*lunafoundry\/content/);
+  assert.match(stdout, /git@github-lunafoundry:lunafoundry\/luna-ore\.git/);
+  assert.match(stdout, /CONTENT_REPOSITORY\s*=\s*lunafoundry\/luna-ore/);
   assert.match(stdout, /SITE_URL\s*=\s*https:\/\/lunafoundry\.github\.io/);
   assert.match(stdout, /BASE_PATH\s*=\s*\/luna-site\//);
 });
@@ -31,7 +31,7 @@ test('GIT_PROTOCOL=https 时使用 https 远端', async () => {
 test('GITHUB_OWNER 可切换账号，URL 与变量同步变化', async () => {
   const { stdout } = await dryRun({ GITHUB_OWNER: 'lucas-zan', SSH_HOST_ALIAS: 'github-lucas-zan' });
   assert.match(stdout, /git@github-lucas-zan:lucas-zan\/luna-site\.git/);
-  assert.match(stdout, /CONTENT_REPOSITORY\s*=\s*lucas-zan\/content/);
+  assert.match(stdout, /CONTENT_REPOSITORY\s*=\s*lucas-zan\/luna-ore/);
   assert.match(stdout, /SITE_URL\s*=\s*https:\/\/lucas-zan\.github\.io/);
   assert.match(stdout, /BASE_PATH\s*=\s*\/luna-site\//);
 });
