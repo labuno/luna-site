@@ -12,6 +12,8 @@ Markdown / YAML / media files managed in Git, while this repository only holds t
 Every deployment is pinned to an exact content commit, so any published revision can be
 reproduced or rolled back.
 
+**Live site:** <https://labuno.github.io/luna-site/> — built by this engine from a private content repository.
+
 [中文文档](./README.zh-CN.md)
 
 ![Home page](docs/assets/demo-home.webp)
@@ -190,7 +192,7 @@ gitignored.
 
 - Astro 7 no longer bundles a unified pipeline for Markdown; remark plugins need
   `@astrojs/markdown-remark` as an explicit dependency (already included).
-- Pages actions are intentionally pinned (`configure-pages` v5, `upload-pages-artifact` v4,
-  `deploy-pages` v4); bump them only after validating in CI.
+- Pages actions are pinned to current majors (`configure-pages` v6, `upload-pages-artifact` v5,
+  `deploy-pages` v5) and validated by a real deployment before release.
 - Pagefind does not support stemming for `zh-cn`; Chinese search matches by token, which is
   expected behavior.

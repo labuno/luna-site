@@ -9,6 +9,8 @@ luna-site 是 [LunaFoundry](https://github.com/labuno) 的站点引擎：它从*
 渲染出一个快速、带全文搜索的静态网站。内容始终是 Git 中的 Markdown / YAML / 媒体文件，
 本仓库只保存站点代码；两者不共享 Git 历史，每次部署都绑定到明确的内容 commit，可复现、可回滚。
 
+**线上站点：** <https://labuno.github.io/luna-site/> —— 由本引擎 + 私有内容仓库构建。
+
 [English README](./README.md)
 
 ![首页](docs/assets/demo-home.webp)
@@ -172,6 +174,6 @@ npm run build:demo     # 校验 + 构建 + dist 断言
 
 - Astro 7 的 Markdown 管线不再内置 unified，使用 remark 插件需显式依赖
   `@astrojs/markdown-remark`（已加入 dependencies）。
-- Pages actions 有意固定在（configure-pages v5 / upload-pages-artifact v4 / deploy-pages v4），
-  升级前应先在 CI 验证。
+- Pages actions 固定为当前 major（configure-pages v6 / upload-pages-artifact v5 / deploy-pages v5），
+  每次升级都以真实部署验证。
 - Pagefind 对 `zh-cn` 不做词干还原（stemming），中文搜索按分词匹配，属预期行为。
