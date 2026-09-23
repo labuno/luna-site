@@ -16,7 +16,7 @@ const items = headings.filter((heading) => heading.depth === 2 || heading.depth 
 ---
 
 {items.length > 1 && (
-  <nav class:list={['toc', className]} aria-label={title}>
+  <nav class:list={['toc', className]} aria-label={title} data-toc>
     <p class="toc-title">{title}</p>
     <ol>
       {items.map((heading) => (
