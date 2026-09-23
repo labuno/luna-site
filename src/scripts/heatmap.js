@@ -1,5 +1,5 @@
 /**
- * 写作轨迹热力图：在"最近 90 天 / 全年"两个视图之间切换（渐进增强）。
+ * 写作轨迹热力图：在"最近 30 天 / 最近 90 天 / 全年"之间切换（渐进增强）。
  */
 export function setupHeatmap() {
   const root = document.querySelector('[data-heatmap]');
@@ -14,10 +14,8 @@ export function setupHeatmap() {
     for (const button of buttons) {
       button.setAttribute('aria-pressed', String(button.getAttribute('data-heatmap-view') === view));
     }
-    if (summaryEl) {
-      const text = view === 'year' ? root.getAttribute('data-summary-year') : root.getAttribute('data-summary-recent');
-      summaryEl.textContent = text ?? '';
-    }
+    const active = grids.find((grid) => grid.getAttribute('data-heatmap-grid') === view);
+    if (summaryEl) summaryEl.textContent = active?.getAttribute('data-summary') ?? '';
   };
 
   for (const button of buttons) {

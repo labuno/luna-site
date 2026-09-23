@@ -13,34 +13,44 @@ interface HeatmapData {
 }
 
 interface Props {
+  month: HeatmapData;
   recent: HeatmapData;
   year: HeatmapData;
 }
 
-const { recent, year } = Astro.props;
+const { month, recent, year } = Astro.props;
 const summary = (data: HeatmapData, label: string) => `${data.activeDays} 天有记录，${label}累计 ${data.total} 次`;
-const recentSummary = summary(recent, '近 90 天');
-const yearSummary = summary(year, '今年');
+
+const views = [
+  { id: 'month', label: '最近 30 天', data: month, summary: summary(month, '近 30 天') },
+  { id: 'recent', label: '最近 90 天', data: recent, summary: summary(recent, '近 90 天') },
+  { id: 'year', label: '全年轨迹', data: year, summary: summary(year, '今年') },
+];
+const defaultView = views[0];
 ---
 
-<section
-  class="heatmap-card"
-  data-heatmap
-  data-summary-recent={recentSummary}
-  data-summary-year={yearSummary}
-  aria-label="写作轨迹"
->
+<section class="heatmap-card" data-heatmap aria-label="写作轨迹">
   <div class="heatmap-head">
-    <p class="heatmap-summary" data-heatmap-summary>{recentSummary}</p>
+    <p class="heatmap-summary" data-heatmap-summary>{defaultView.summary}</p>
     <div class="heatmap-toggle" role="group" aria-label="轨迹范围">
-      <button type="button" data-heatmap-view="recent" aria-pressed="true">最近 90 天</button>
-      <button type="button" data-heatmap-view="year" aria-pressed="false">全年轨迹</button>
+      {views.map((view) => (
+        <button
+          type="button"
+          data-heatmap-view={view.id}
+          aria-pressed={view.id === defaultView.id ? 'true' : 'false'}
+        >{view.label}</button>
+      ))}
     </div>
   </div>
 
-  {[['recent', recent], ['year', year]].map(([view, data]) => (
-    <div class="heatmap-grid" data-heatmap-grid={view as string} hidden={view === 'year'}>
-      {(data as HeatmapData).weeks.map((week) => (
+  {views.map((view) => (
+    <div
+      class="heatmap-grid"
+      data-heatmap-grid={view.id}
+      data-summary={view.summary}
+      hidden={view.id !== defaultView.id}
+    >
+      {view.data.weeks.map((week) => (
         <div class="heatmap-week">
           {week.map((cell) => (
             <span
