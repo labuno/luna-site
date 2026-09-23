@@ -3,6 +3,7 @@ import { getCollection, render, type CollectionEntry } from 'astro:content';
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import { formatDate, slugify } from '@/utils/content';
 import { sitePath } from '@/utils/paths';
+import { tagHue } from '@/lib/tag-color.mjs';
 
 export async function getStaticPaths() {
   const novels = await getCollection('novels');
@@ -44,7 +45,7 @@ const toc = headings.filter((heading) => heading.depth === 2 || heading.depth ==
       {chapter.data.tags.length > 0 && (
         <div class="tag-row article-tags">
           {chapter.data.tags.map((tag) => (
-            <a href={sitePath(`/tags/${encodeURIComponent(slugify(tag))}/`)}>#{tag}</a>
+            <a style={`--tag-hue: ${tagHue(slugify(tag))}`} href={sitePath(`/tags/${encodeURIComponent(slugify(tag))}/`)}>#{tag}</a>
           ))}
         </div>
       )}

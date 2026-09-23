@@ -4,6 +4,7 @@ import TableOfContents from '@/components/TableOfContents.astro';
 import { formatDate, slugify } from '@/utils/content';
 import { sitePath } from '@/utils/paths';
 import { siteConfig } from '@/site.config';
+import { tagHue } from '@/lib/tag-color.mjs';
 
 interface Heading {
   depth: number;
@@ -54,7 +55,7 @@ const jsonLd = {
         </div>
         {tags.length > 0 && (
           <div class="tag-row article-tags">
-            {tags.map((tag) => <a href={sitePath(`/tags/${encodeURIComponent(slugify(tag))}/`)}>#{tag}</a>)}
+            {tags.map((tag) => <a style={`--tag-hue: ${tagHue(slugify(tag))}`} href={sitePath(`/tags/${encodeURIComponent(slugify(tag))}/`)}>#{tag}</a>)}
           </div>
         )}
       </header>

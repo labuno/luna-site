@@ -2,6 +2,7 @@
 import type { CollectionEntry } from 'astro:content';
 import { formatDate, slugify } from '@/utils/content';
 import { sitePath } from '@/utils/paths';
+import { tagHue } from '@/lib/tag-color.mjs';
 
 interface Props {
   post: CollectionEntry<'blog'>;
@@ -29,7 +30,7 @@ const tagSlugs = post.data.tags.map((tag) => slugify(tag)).join(',');
   <p>{post.data.description}</p>
   <div class="tag-row">
     {post.data.tags.slice(0, 4).map((tag) => (
-      <a href={sitePath(`/tags/${encodeURIComponent(slugify(tag))}/`)}>#{tag}</a>
+      <a style={`--tag-hue: ${tagHue(slugify(tag))}`} href={sitePath(`/tags/${encodeURIComponent(slugify(tag))}/`)}>#{tag}</a>
     ))}
   </div>
 </article>

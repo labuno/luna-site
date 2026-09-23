@@ -2,6 +2,7 @@
 import type { CollectionEntry } from 'astro:content';
 import { novelStatusLabel, formatDate, slugify } from '@/utils/content';
 import { sitePath } from '@/utils/paths';
+import { tagHue } from '@/lib/tag-color.mjs';
 
 interface Props {
   novel: CollectionEntry<'novels'>;
@@ -21,7 +22,7 @@ const { novel } = Astro.props;
     <h3><a href={sitePath(`/novel/${novel.data.slug}/`)}>{novel.data.title}</a></h3>
     <p>{novel.data.description}</p>
     <div class="tag-row">
-      {novel.data.genres.map((genre) => <span>#{genre}</span>)}
+      {novel.data.genres.map((genre) => <span style={`--tag-hue: ${tagHue(slugify(genre))}`}>#{genre}</span>)}
     </div>
   </div>
 </article>

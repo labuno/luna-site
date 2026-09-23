@@ -3,6 +3,7 @@ import { getCollection, type CollectionEntry } from 'astro:content';
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import { novelStatusLabel, formatDate, slugify } from '@/utils/content';
 import { sitePath } from '@/utils/paths';
+import { tagHue } from '@/lib/tag-color.mjs';
 
 export async function getStaticPaths() {
   const novels = await getCollection('novels');
@@ -63,10 +64,10 @@ const jsonLd = {
         </div>
         <div class="tag-row">
           {novel.data.genres.map((genre) => (
-            <a href={sitePath(`/novel/?genre=${encodeURIComponent(slugify(genre))}`)}>#{genre}</a>
+            <a style={`--tag-hue: ${tagHue(slugify(genre))}`} href={sitePath(`/novel/?genre=${encodeURIComponent(slugify(genre))}`)}>#{genre}</a>
           ))}
           {novel.data.tags.map((tag) => (
-            <a href={sitePath(`/tags/${encodeURIComponent(slugify(tag))}/`)}>#{tag}</a>
+            <a style={`--tag-hue: ${tagHue(slugify(tag))}`} href={sitePath(`/tags/${encodeURIComponent(slugify(tag))}/`)}>#{tag}</a>
           ))}
         </div>
         {chapters[0] && (

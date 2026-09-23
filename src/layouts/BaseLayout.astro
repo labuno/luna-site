@@ -49,9 +49,12 @@ const base = import.meta.env.BASE_URL || '/';
     <slot name="head" />
     <script is:inline>
       (() => {
-        const saved = localStorage.getItem('theme');
-        const dark = saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
-        document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+        const root = document.documentElement;
+        const legacy = localStorage.getItem('theme');
+        const mode = localStorage.getItem('theme-mode') || (legacy === 'dark' || legacy === 'light' ? legacy : 'system');
+        const dark = mode === 'dark' || (mode === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        root.dataset.theme = dark ? 'dark' : 'light';
+        root.dataset.themeMode = mode;
       })();
     </script>
   </head>
@@ -64,11 +67,31 @@ const base = import.meta.env.BASE_URL || '/';
     <script is:inline>
       (() => {
         const root = document.documentElement;
-        document.querySelector('#theme-toggle')?.addEventListener('click', () => {
-          const next = root.dataset.theme === 'dark' ? 'light' : 'dark';
-          root.dataset.theme = next;
-          localStorage.setItem('theme', next);
-        });
+        const media = window.matchMedia('(prefers-color-scheme: dark)');
+        const buttons = [...document.querySelectorAll('[data-theme-option]')];
+
+        const apply = (mode, persist) => {
+          const dark = mode === 'dark' || (mode === 'system' && media.matches);
+          root.dataset.theme = dark ? 'dark' : 'light';
+          root.dataset.themeMode = mode;
+          for (const button of buttons) {
+            button.setAttribute('aria-pressed', String(button.dataset.themeOption === mode));
+          }
+          if (persist) localStorage.setItem('theme-mode', mode);
+        };
+
+        for (const button of buttons) {
+          button.addEventListener('click', () => apply(button.dataset.themeOption, true));
+        }
+
+        // 跟随系统时，实时响应系统外观切换
+        const onSystemChange = () => {
+          if (root.dataset.themeMode === 'system') apply('system', false);
+        };
+        if (media.addEventListener) media.addEventListener('change', onSystemChange);
+        else media.addListener(onSystemChange);
+
+        apply(root.dataset.themeMode || 'system', false);
 
         document.addEventListener('keydown', (event) => {
           const target = event.target;

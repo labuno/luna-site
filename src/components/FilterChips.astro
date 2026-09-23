@@ -1,5 +1,6 @@
 ---
 import { sitePath } from '@/utils/paths';
+import { tagHue } from '@/lib/tag-color.mjs';
 
 interface Chip {
   slug: string;
@@ -40,6 +41,7 @@ function chipHref(slug: string) {
       data-kind={kind}
       data-slug={chip.slug}
       data-name={chip.name}
+      style={chip.slug && kind !== 'section' ? `--tag-hue: ${tagHue(chip.slug)}` : undefined}
       href={sitePath(chipHref(chip.slug))}
     >{kind === 'tags' ? `#${chip.name}` : chip.name}{chip.count !== undefined && <span>{chip.count}</span>}</a>
   ))}

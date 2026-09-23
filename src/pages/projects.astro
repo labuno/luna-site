@@ -3,6 +3,7 @@ import { getCollection } from 'astro:content';
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import { projectStatusLabel, slugify } from '@/utils/content';
 import { sitePath } from '@/utils/paths';
+import { tagHue } from '@/lib/tag-color.mjs';
 
 const projects = (await getCollection('projects')).sort((a, b) => Number(b.data.featured) - Number(a.data.featured));
 ---
@@ -19,7 +20,7 @@ const projects = (await getCollection('projects')).sort((a, b) => Number(b.data.
         <p>{project.data.description}</p>
         <div class="tag-row">
           {project.data.tags.map((tag) => (
-            <a href={sitePath(`/tags/${encodeURIComponent(slugify(tag))}/`)}>#{tag}</a>
+            <a style={`--tag-hue: ${tagHue(slugify(tag))}`} href={sitePath(`/tags/${encodeURIComponent(slugify(tag))}/`)}>#{tag}</a>
           ))}
         </div>
         <div class="project-links">

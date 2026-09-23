@@ -3,6 +3,7 @@ import { getCollection } from 'astro:content';
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import { collectTaxonomy } from '@/utils/content';
 import { sitePath } from '@/utils/paths';
+import { tagHue } from '@/lib/tag-color.mjs';
 
 const posts = await getCollection('blog', ({ data }) => import.meta.env.DEV || !data.draft);
 const novels = await getCollection('novels');
@@ -24,7 +25,7 @@ const tags = collectTaxonomy([
   </section>
   <div class="tag-cloud">
     {tags.map((tag) => (
-      <a href={sitePath(`/tags/${encodeURIComponent(tag.slug)}/`)}>#{tag.name}<span>{tag.count}</span></a>
+      <a style={`--tag-hue: ${tagHue(tag.slug)}`} href={sitePath(`/tags/${encodeURIComponent(tag.slug)}/`)}>#{tag.name}<span>{tag.count}</span></a>
     ))}
   </div>
 </BaseLayout>
