@@ -1,7 +1,9 @@
 # 多账号共存：一台机器管理多个 GitHub 身份
 
-目标：`lunafoundry`（本站点账号）与个人账号（例如 `lucas-zan`）在同一台 Mac 上互不干扰，
+目标：`labuno`（本站点账号，2026-09 由 `lunafoundry` 更名而来）与个人账号（例如 `lucas-zan`）在同一台 Mac 上互不干扰，
 此后新建仓库不需要重复配置。
+
+> 备注：此前按旧名生成的机器配置（`~/.gitconfig-lunafoundry`、SSH 别名 `github-lunafoundry`、`~/.ssh/id_ed25519_lunafoundry`）指向同一账号，仍可继续使用；如需统一为新命名，请先删除 `~/.gitconfig` 与 `~/.ssh/config` 中对应的旧配置块，再按下文命令重跑。
 
 ## 三层身份，各自独立
 
@@ -17,42 +19,42 @@
 ```bash
 cd luna-site
 ./scripts/setup-git-account.sh \
-  --account lunafoundry \
+  --account labuno \
   --root /Users/lucas/Documents/products/blog-pack \
   --generate-key
 ```
 
 脚本（幂等，可重复执行）会写三处配置并生成一把专属 SSH key：
 
-1. `~/.gitconfig-lunafoundry`：提交身份 + URL 重写
-   （`https://github.com/lunafoundry/…` 与 `git@github.com:lunafoundry/…` 都自动改写成专用别名）
+1. `~/.gitconfig-labuno`：提交身份 + URL 重写
+   （`https://github.com/labuno/…` 与 `git@github.com:labuno/…` 都自动改写成专用别名）
 2. `~/.gitconfig`：追加一条 `includeIf "gitdir:<root>/"`，只对 `<root>` 下的仓库生效
-3. `~/.ssh/config`：追加 `Host github-lunafoundry`（`IdentityFile ~/.ssh/id_ed25519_lunafoundry`、`IdentitiesOnly yes`）
-4. `~/.ssh/id_ed25519_lunafoundry{,.pub}`：账号专属密钥
+3. `~/.ssh/config`：追加 `Host github-labuno`（`IdentityFile ~/.ssh/id_ed25519_labuno`、`IdentitiesOnly yes`）
+4. `~/.ssh/id_ed25519_labuno{,.pub}`：账号专属密钥
 
 然后把公钥添加到该账号，并验证：
 
 ```bash
-gh auth login --hostname github.com          # 添加 lunafoundry 账号（多账号共存，不覆盖个人账号）
-gh ssh-key add ~/.ssh/id_ed25519_lunafoundry.pub --title "$(hostname -s)"
-ssh -T git@github-lunafoundry                # 期望：Hi lunafoundry! You've successfully authenticated...
+gh auth login --hostname github.com          # 添加 labuno 账号（多账号共存，不覆盖个人账号）
+gh ssh-key add ~/.ssh/id_ed25519_labuno.pub --title "$(hostname -s)"
+ssh -T git@github-labuno                # 期望：Hi labuno! You've successfully authenticated...
 ```
 
 验证 git 身份（在作用目录内的任意仓库中）：
 
 ```bash
 git config user.name    # LunaFoundry
-git config user.email   # 330791588+lunafoundry@users.noreply.github.com
+git config user.email   # 330791588+labuno@users.noreply.github.com
 ```
 
 ## 日常使用
 
 ```bash
 # gh 命令默认用活跃账号；需要以某个账号执行时，单条命令指定即可
-GH_TOKEN="$(gh auth token -u lunafoundry)" gh repo list lunafoundry
+GH_TOKEN="$(gh auth token -u labuno)" gh repo list labuno
 
 # 切换 gh 的默认活跃账号（影响所有未指定账号的命令）
-gh auth switch --user lunafoundry
+gh auth switch --user labuno
 gh auth status
 ```
 
@@ -69,8 +71,8 @@ gh auth status
 1. 把仓库放在同一作用目录下（例如 `/Users/lucas/Documents/products/blog-pack/`），
    git 身份与 SSH 别名自动生效，无需任何配置。
 2. 克隆/新建时使用别名地址：
-   `git clone git@github-lunafoundry:lunafoundry/<repo>.git`
-   或先 `git remote set-url origin git@github-lunafoundry:lunafoundry/<repo>.git`。
+   `git clone git@github-labuno:labuno/<repo>.git`
+   或先 `git remote set-url origin git@github-labuno:labuno/<repo>.git`。
 3. 需要 CI 跨仓库访问时，再按 `docs/GITHUB-CLI.md` 配置 Variables/Secrets。
 
 如果新仓库不在同一目录，两种选择：把 `--root` 换成新的父目录重新执行一次
@@ -78,8 +80,8 @@ gh auth status
 
 ```bash
 git config user.name "LunaFoundry"
-git config user.email "330791588+lunafoundry@users.noreply.github.com"
-git config url."git@github-lunafoundry:".insteadOf "https://github.com/lunafoundry/"
+git config user.email "330791588+labuno@users.noreply.github.com"
+git config url."git@github-labuno:".insteadOf "https://github.com/labuno/"
 ```
 
 ## CI 凭据的长期选择

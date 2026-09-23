@@ -24,7 +24,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  CONTENT_REPOSITORY: ${{ vars.CONTENT_REPOSITORY || 'lunafoundry/luna-ore' }}
+  CONTENT_REPOSITORY: ${{ vars.CONTENT_REPOSITORY || 'labuno/luna-ore' }}
   CONTENT_REF: ${{ inputs.content_ref || 'main' }}
 
 jobs:
@@ -47,7 +47,7 @@ jobs:
       - name: Resolve site URL and base path
         shell: bash
         run: |
-          echo "SITE_URL=${{ vars.SITE_URL || 'https://lunafoundry.github.io' }}" >> "$GITHUB_ENV"
+          echo "SITE_URL=${{ vars.SITE_URL || 'https://labuno.github.io' }}" >> "$GITHUB_ENV"
           echo "BASE_PATH=${{ vars.BASE_PATH || '/luna-site/' }}" >> "$GITHUB_ENV"
 
       - name: Setup Node.js

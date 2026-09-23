@@ -1,7 +1,7 @@
 # luna-site
 
 LunaFoundry 的网站程序仓库（Public）。Astro + Pagefind 静态站点，内容来自私有仓库
-`lunafoundry/luna-ore`，构建时注入并部署到 GitHub Pages（后续可无痛迁移到 VPS/Nginx）。
+`labuno/luna-ore`，构建时注入并部署到 GitHub Pages（后续可无痛迁移到 VPS/Nginx）。
 
 - 内容唯一事实源：Markdown / YAML / 媒体文件 + Git
 - 程序公开、内容私有：真实内容不进入本仓库的 Git 历史
@@ -11,7 +11,7 @@ LunaFoundry 的网站程序仓库（Public）。Astro + Pagefind 静态站点，
 ## 架构
 
 ```text
-lunafoundry/luna-ore (Private)                lunafoundry/luna-site (Public)
+labuno/luna-ore (Private)                  labuno/luna-site (Public)
 content/blog/*.md  novels/**  projects/*.yaml       Astro 页面 / 组件 / Schema
 media/**                                            scripts/ + Pagefind + CI
         │                                                   ▲
@@ -69,8 +69,8 @@ npm install
 npm run dev:demo
 
 # 使用真实私有内容（两个仓库保持同级目录）
-git clone git@github.com:lunafoundry/luna-site.git
-git clone git@github.com:lunafoundry/luna-ore.git
+git clone git@github.com:labuno/luna-site.git
+git clone git@github.com:labuno/luna-ore.git
 cd luna-site
 npm run content:sync -- ../luna-ore
 npm run dev
@@ -89,6 +89,8 @@ npm run dev
 | `npm run test` | node:test 单元测试（含工作流约束测试） |
 | `npm run check:dist` | 构建后断言：断链、锚点、草稿泄漏、Pagefind/Sitemap/RSS |
 | `npm run build:demo` | 内容校验 + 构建 + dist 断言的完整流程（Demo 内容） |
+
+> 未检出同级 `luna-ore` 时（公开 CI、或只克隆了本站点的贡献者），涉及私有内容仓库的测试会自动跳过，其余测试与 `build:demo` 流程不受影响。
 
 ## 内容 Schema
 
@@ -158,7 +160,7 @@ draft: false                 # true 不生成页面/RSS/Sitemap/搜索索引
 3. `content` Variables：`SITE_REPOSITORY`；Secret：`SITE_WORKFLOW_TOKEN`
    （Fine-grained，luna-site: Actions Write）。
 4. Pages Source 选择 **GitHub Actions**，`deploy-pages.yml` 使用 `github-pages` environment。
-5. 默认地址 `https://lunafoundry.github.io/luna-site/`（`BASE_PATH=/luna-site/`）。
+5. 默认地址 `https://labuno.github.io/luna-site/`（`BASE_PATH=/luna-site/`）。
 
 发布链路：`content` push → `notify-site.yml`（只触发，传递 `GITHUB_SHA`）→
 `deploy-pages.yml` checkout `content@SHA` → sync → validate → build → check:dist → Pages。
@@ -167,14 +169,14 @@ draft: false                 # true 不生成页面/RSS/Sitemap/搜索索引
 
 ```bash
 # 重发某个内容版本
-gh workflow run deploy-pages.yml --repo lunafoundry/luna-site \
+gh workflow run deploy-pages.yml --repo labuno/luna-site \
   -f content_ref=<CONTENT_SHA> -f reason=manual-redeploy
 
 # 重发某个站点代码版本
-gh workflow run deploy-pages.yml --repo lunafoundry/luna-site --ref <SITE_SHA>
+gh workflow run deploy-pages.yml --repo labuno/luna-site --ref <SITE_SHA>
 
-gh run list --repo lunafoundry/luna-site --limit 10
-gh run view <RUN_ID> --repo lunafoundry/luna-site --log-failed
+gh run list --repo labuno/luna-site --limit 10
+gh run view <RUN_ID> --repo labuno/luna-site --log-failed
 ```
 
 ## Base Path 与自定义域名
@@ -182,7 +184,7 @@ gh run view <RUN_ID> --repo lunafoundry/luna-site --log-failed
 所有站内链接、媒体 URL、RSS、Sitemap、canonical 都通过 `sitePath()` 生成；Markdown 中的
 `/media/...`、`/blog/...` 由 `src/lib/remark-base-path.mjs` 在构建期按 `BASE_PATH` 重写。
 
-- GitHub Pages 项目站点：`SITE_URL=https://lunafoundry.github.io`、`BASE_PATH=/luna-site/`
+- GitHub Pages 项目站点：`SITE_URL=https://labuno.github.io`、`BASE_PATH=/luna-site/`
 - 绑定自定义域名：`SITE_URL=https://你的域名`、`BASE_PATH=/`
 - 内容文件与 URL 结构都不需要修改。
 
@@ -200,10 +202,10 @@ gh run view <RUN_ID> --repo lunafoundry/luna-site --log-failed
 
 ```bash
 npm ci
-npm run content:sync -- /srv/lunafoundry/luna-ore
+npm run content:sync -- /srv/labuno/luna-ore
 npm run validate:content && npm run build && npm run check:dist
 # dist/ 可直接由 Nginx 托管
-rsync -az --delete dist/ deploy@vps:/srv/www/lunafoundry/
+rsync -az --delete dist/ deploy@vps:/srv/www/labuno/
 ```
 
 - 保持同一个域名与 URL 结构，历史链接不变；

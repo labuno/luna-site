@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # 为某个 GitHub 账号配置“账号级”git 身份与 SSH 别名，一次配置、长期复用。
 #
-#   ./scripts/setup-git-account.sh --account lunafoundry [--root <dir>] [--generate-key]
+#   ./scripts/setup-git-account.sh --account labuno [--root <dir>] [--generate-key]
 #
 # 会做四件事（全部幂等，重复执行不会产生重复配置）：
 #   1. 生成 ~/.gitconfig-<account>：commit 身份 + URL 重写（HTTPS/原 SSH -> 专用 SSH 别名）
@@ -13,7 +13,7 @@
 set -euo pipefail
 
 root_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-account="${GITHUB_OWNER:-lunafoundry}"
+account="${GITHUB_OWNER:-labuno}"
 repo_root="$(dirname "$root_dir")"
 scope_root="$repo_root"
 ssh_alias=""

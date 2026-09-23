@@ -13,6 +13,7 @@
 > 版本：V1.0   ·   日期：2026-09-20
 > 说明：本文档中的仓库命名已按最终约定统一为 luna-site + luna-ore；若旧材料中仍出现 lunafoundry.github.io / lunafoundry-content / 裸名 content，应以本文档命名为准。
 > 转换说明：本文由设计基线 `LunaFoundry_双仓库网站系统设计与开发交付文档_V1.0.docx` 自动转换；仓库名已从原稿 `content` 更新为 `luna-ore`，其余以实施仓库为准。
+> 账号更名（2026-09-23）：GitHub 账号 `lunafoundry` 已更名为 `labuno`。正文中作为账号命名空间的 `lunafoundry/luna-site`、`lunafoundry/luna-ore`、`https://lunafoundry.github.io` 等应读作 `labuno/...`、`https://labuno.github.io`；作为旧 Starter 名出现的 `lunafoundry.github.io`、`lunafoundry-content`（第 2.3 节、DoD 清单）保持历史原样。
 
 ---
 

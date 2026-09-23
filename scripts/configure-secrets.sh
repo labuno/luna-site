@@ -7,7 +7,7 @@
 set -euo pipefail
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-owner="${GITHUB_OWNER:-lunafoundry}"
+owner="${GITHUB_OWNER:-labuno}"
 site_repo="${SITE_REPO:-luna-site}"
 content_repo="${CONTENT_REPO:-luna-ore}"
 

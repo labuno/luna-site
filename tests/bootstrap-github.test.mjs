@@ -13,19 +13,19 @@ function dryRun(env = {}) {
   });
 }
 
-test('默认使用 lunafoundry 账号与 SSH 别名远端', async () => {
+test('默认使用 labuno 账号与 SSH 别名远端', async () => {
   const { stdout } = await dryRun();
-  assert.match(stdout, /账号:\s+lunafoundry/);
-  assert.match(stdout, /git@github-lunafoundry:lunafoundry\/luna-site\.git/);
-  assert.match(stdout, /git@github-lunafoundry:lunafoundry\/luna-ore\.git/);
-  assert.match(stdout, /CONTENT_REPOSITORY\s*=\s*lunafoundry\/luna-ore/);
-  assert.match(stdout, /SITE_URL\s*=\s*https:\/\/lunafoundry\.github\.io/);
+  assert.match(stdout, /账号:\s+labuno/);
+  assert.match(stdout, /git@github-labuno:labuno\/luna-site\.git/);
+  assert.match(stdout, /git@github-labuno:labuno\/luna-ore\.git/);
+  assert.match(stdout, /CONTENT_REPOSITORY\s*=\s*labuno\/luna-ore/);
+  assert.match(stdout, /SITE_URL\s*=\s*https:\/\/labuno\.github\.io/);
   assert.match(stdout, /BASE_PATH\s*=\s*\/luna-site\//);
 });
 
 test('GIT_PROTOCOL=https 时使用 https 远端', async () => {
   const { stdout } = await dryRun({ GIT_PROTOCOL: 'https' });
-  assert.match(stdout, /https:\/\/github\.com\/lunafoundry\/luna-site\.git/);
+  assert.match(stdout, /https:\/\/github\.com\/labuno\/luna-site\.git/);
 });
 
 test('GITHUB_OWNER 可切换账号，URL 与变量同步变化', async () => {

@@ -3,18 +3,18 @@
 #
 #   ./scripts/bootstrap-github.sh [--dry-run]
 #
-# 账号锁定：默认使用 $GITHUB_OWNER（默认 lunafoundry）的 gh 凭据，
+# 账号锁定：默认使用 $GITHUB_OWNER（默认 labuno）的 gh 凭据，
 # 通过 `gh auth token --user` 取 token，因此不依赖当前 gh 活跃账号。
 #
 # 环境变量覆盖：
-#   GITHUB_OWNER   目标账号（默认 lunafoundry）
+#   GITHUB_OWNER   目标账号（默认 labuno）
 #   GIT_PROTOCOL   ssh（默认）| https
 #   SSH_HOST_ALIAS SSH 别名（默认 github-<owner>，先在 setup-git-account.sh 中配置）
 #   SITE_REPO / CONTENT_REPO / CONTENT_DIR
 set -euo pipefail
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-owner="${GITHUB_OWNER:-lunafoundry}"
+owner="${GITHUB_OWNER:-labuno}"
 site_repo="${SITE_REPO:-luna-site}"
 content_repo="${CONTENT_REPO:-luna-ore}"
 content_dir="${CONTENT_DIR:-$root/../luna-ore}"

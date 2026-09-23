@@ -13,7 +13,7 @@ const SCRIPT = fileURLToPath(new URL('../scripts/setup-git-account.sh', import.m
 
 async function makeHome() {
   const home = await mkdtemp(path.join(os.tmpdir(), 'lf-home-'));
-  await mkdir(path.join(home, 'work', 'lunafoundry'), { recursive: true });
+  await mkdir(path.join(home, 'work', 'labuno'), { recursive: true });
   await mkdir(path.join(home, '.ssh'), { recursive: true });
   return home;
 }
@@ -26,32 +26,32 @@ function runScript(args, home, extraEnv = {}) {
 
 const baseArgs = (home) => [
   '--account',
-  'lunafoundry',
+  'labuno',
   '--root',
-  path.join(home, 'work', 'lunafoundry'),
+  path.join(home, 'work', 'labuno'),
   '--ssh-alias',
-  'github-lunafoundry',
+  'github-labuno',
 ];
 
 test('写入账号级 gitconfig（身份 + URL 重写）', async () => {
   const home = await makeHome();
   await runScript(baseArgs(home), home);
 
-  const accountConfig = await readFile(path.join(home, '.gitconfig-lunafoundry'), 'utf8');
+  const accountConfig = await readFile(path.join(home, '.gitconfig-labuno'), 'utf8');
   assert.match(accountConfig, /\[user\]/);
-  assert.match(accountConfig, /name = lunafoundry/);
-  assert.match(accountConfig, /email = 330791588\+lunafoundry@users\.noreply\.github\.com/);
-  assert.match(accountConfig, /insteadOf = https:\/\/github\.com\/lunafoundry\//);
-  assert.match(accountConfig, /insteadOf = git@github\.com:lunafoundry\//);
+  assert.match(accountConfig, /name = labuno/);
+  assert.match(accountConfig, /email = 330791588\+labuno@users\.noreply\.github\.com/);
+  assert.match(accountConfig, /insteadOf = https:\/\/github\.com\/labuno\//);
+  assert.match(accountConfig, /insteadOf = git@github\.com:labuno\//);
 
   const globalConfig = await readFile(path.join(home, '.gitconfig'), 'utf8');
   assert.match(globalConfig, /includeIf "gitdir:/);
-  assert.match(globalConfig, /\.gitconfig-lunafoundry/);
+  assert.match(globalConfig, /\.gitconfig-labuno/);
 
   const sshConfig = await readFile(path.join(home, '.ssh', 'config'), 'utf8');
-  assert.match(sshConfig, /Host github-lunafoundry/);
+  assert.match(sshConfig, /Host github-labuno/);
   assert.match(sshConfig, /HostName github\.com/);
-  assert.match(sshConfig, /IdentityFile .*id_ed25519_lunafoundry/);
+  assert.match(sshConfig, /IdentityFile .*id_ed25519_labuno/);
   assert.match(sshConfig, /IdentitiesOnly yes/);
 });
 
@@ -63,7 +63,7 @@ test('重复执行保持幂等（不产生重复配置块）', async () => {
   const globalConfig = await readFile(path.join(home, '.gitconfig'), 'utf8');
   const sshConfig = await readFile(path.join(home, '.ssh', 'config'), 'utf8');
   assert.equal((globalConfig.match(/includeIf/g) ?? []).length, 1);
-  assert.equal((sshConfig.match(/Host github-lunafoundry/g) ?? []).length, 1);
+  assert.equal((sshConfig.match(/Host github-labuno/g) ?? []).length, 1);
 });
 
 test('保留已有的全局配置内容', async () => {
@@ -82,7 +82,7 @@ test('作用目录变化时给出提示而不重复写入', async () => {
   const other = path.join(home, 'work', 'elsewhere');
   await mkdir(other, { recursive: true });
   const result = await runScript([
-    '--account', 'lunafoundry', '--root', other, '--ssh-alias', 'github-lunafoundry',
+    '--account', 'labuno', '--root', other, '--ssh-alias', 'github-labuno',
   ], home);
   assert.match(result.stdout, /作用目录不同/);
   const globalConfig = await readFile(path.join(home, '.gitconfig'), 'utf8');
@@ -92,7 +92,7 @@ test('作用目录变化时给出提示而不重复写入', async () => {
 test('--dry-run 不写入任何文件', async () => {
   const home = await makeHome();
   await runScript([...baseArgs(home), '--dry-run'], home);
-  assert.equal(existsSync(path.join(home, '.gitconfig-lunafoundry')), false);
+  assert.equal(existsSync(path.join(home, '.gitconfig-labuno')), false);
   assert.equal(existsSync(path.join(home, '.gitconfig')), false);
 });
 

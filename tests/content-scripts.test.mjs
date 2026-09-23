@@ -1,16 +1,15 @@
-import test from 'node:test';
 import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
 import { mkdtemp, mkdir, readFile, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
 import os from 'node:os';
 import path from 'node:path';
 import { promisify } from 'node:util';
 import { validateContent } from '../scripts/validate-content.mjs';
+import { contentRepoDir, testIfContentRepo } from './helpers/content-repo.mjs';
 
 const run = promisify(execFile);
-const CONTENT_REPO = fileURLToPath(new URL('../../luna-ore', import.meta.url));
+const CONTENT_REPO = contentRepoDir;
 
 async function makeContentRoot() {
   const root = await mkdtemp(path.join(os.tmpdir(), 'lf-content-root-'));
@@ -26,7 +25,7 @@ function runScript(script, args, contentRoot, options = {}) {
   });
 }
 
-test('new-novel.sh 生成符合 schema 的 novel.yaml', async () => {
+testIfContentRepo('new-novel.sh 生成符合 schema 的 novel.yaml', async () => {
   const root = await makeContentRoot();
   await runScript('new-novel.sh', ['star-sea', '星海'], root);
 
@@ -38,7 +37,7 @@ test('new-novel.sh 生成符合 schema 的 novel.yaml', async () => {
   assert.equal(existsSync(path.join(root, 'content/novels/star-sea/volume-01')), true);
 });
 
-test('new-chapter.sh 生成章节且拒绝重复章号文件', async () => {
+testIfContentRepo('new-chapter.sh 生成章节且拒绝重复章号文件', async () => {
   const root = await makeContentRoot();
   await runScript('new-novel.sh', ['star-sea', '星海'], root);
   await runScript('new-chapter.sh', ['star-sea', '1', '第一章 星夜'], root);
@@ -52,12 +51,12 @@ test('new-chapter.sh 生成章节且拒绝重复章号文件', async () => {
   await assert.rejects(() => runScript('new-chapter.sh', ['star-sea', '1', '重复'], root), /拒绝覆盖|Command failed/);
 });
 
-test('new-chapter.sh 在小说不存在时报错', async () => {
+testIfContentRepo('new-chapter.sh 在小说不存在时报错', async () => {
   const root = await makeContentRoot();
   await assert.rejects(() => runScript('new-chapter.sh', ['ghost', '1', '幽灵'], root), /Command failed/);
 });
 
-test('new-blog.sh 生成的草稿可以通过内容校验', async () => {
+testIfContentRepo('new-blog.sh 生成的草稿可以通过内容校验', async () => {
   const root = await makeContentRoot();
   await runScript('new-blog.sh', ['hello-world', '第一篇文章', 'Meta', 'Notes'], root);
 
@@ -73,12 +72,12 @@ test('new-blog.sh 生成的草稿可以通过内容校验', async () => {
   assert.equal(result.drafts.length, 1);
 });
 
-test('非法 slug 会被拒绝', async () => {
+testIfContentRepo('非法 slug 会被拒绝', async () => {
   const root = await makeContentRoot();
   await assert.rejects(() => runScript('new-blog.sh', ['Hello World', '标题'], root), /Command failed/);
 });
 
-test('publish.sh 在没有改动时不产生提交，有改动时提交', async () => {
+testIfContentRepo('publish.sh 在没有改动时不产生提交，有改动时提交', async () => {
   const root = await makeContentRoot();
   await run('git', ['init', '-b', 'main', '--template='], { cwd: root });
   await run('git', ['config', 'user.email', 'test@example.com'], { cwd: root });

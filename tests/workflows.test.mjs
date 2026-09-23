@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { parse as parseYaml } from 'yaml';
+import { testIfContentRepo } from './helpers/content-repo.mjs';
 
 const workflowPath = (name) => new URL(`../.github/workflows/${name}`, import.meta.url);
 
@@ -48,8 +49,8 @@ test('deploy-pages.yml 满足文档 7.1-7.4 的约束', async () => {
   assert.equal(checkoutContent.with.repository, '${{ env.CONTENT_REPOSITORY }}');
   assert.match(
     JSON.stringify(workflow),
-    /vars\.CONTENT_REPOSITORY \|\| 'lunafoundry\/luna-ore'/,
-    '内容仓库默认值必须是 lunafoundry/luna-ore',
+    /vars\.CONTENT_REPOSITORY \|\| 'labuno\/luna-ore'/,
+    '内容仓库默认值必须是 labuno/luna-ore',
   );
   assert.equal(checkoutContent.with['persist-credentials'], false);
   assert.match(String(checkoutContent.with.token), /secrets\.CONTENT_REPO_TOKEN/);
@@ -71,7 +72,7 @@ test('deploy-pages.yml 满足文档 7.1-7.4 的约束', async () => {
   assert.equal(workflow.jobs.deploy.needs, 'build');
 });
 
-test('notify-site.yml 触发站点构建并绑定 content SHA', async () => {
+testIfContentRepo('notify-site.yml 触发站点构建并绑定 content SHA', async () => {
   const workflow = parseYaml(
     await readFile(new URL('../../luna-ore/.github/workflows/notify-site.yml', import.meta.url), 'utf8'),
   );
@@ -79,6 +80,6 @@ test('notify-site.yml 触发站点构建并绑定 content SHA', async () => {
   assert.match(body, /secrets\.SITE_WORKFLOW_TOKEN/);
   assert.match(body, /gh workflow run deploy-pages\.yml/);
   assert.match(body, /content_ref="\$GITHUB_SHA"/);
-  assert.equal(workflow.env.SITE_REPOSITORY, "${{ vars.SITE_REPOSITORY || 'lunafoundry/luna-site' }}");
+  assert.equal(workflow.env.SITE_REPOSITORY, "${{ vars.SITE_REPOSITORY || 'labuno/luna-site' }}");
   assert.equal(workflow.permissions?.contents, 'read');
 });
