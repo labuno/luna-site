@@ -76,9 +76,9 @@ const activity = collectActivity([
         {events.length === 0 && <li class="log-empty">还没有记录，发布第一篇文章后会出现在这里。</li>}
       </ol>
       <ActivityHeatmap
-        month={buildHeatmap({ counts: activity, days: 30 })}
-        recent={buildHeatmap({ counts: activity, days: 91 })}
-        year={buildHeatmap({ counts: activity, days: 365 })}
+        month={buildHeatmap({ counts: activity, days: 30, columns: 10 })}
+        recent={buildHeatmap({ counts: activity, days: 90, columns: 15 })}
+        year={buildHeatmap({ counts: activity, days: 365, columns: 30 })}
       />
     </div>
   </section>

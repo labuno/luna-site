@@ -7,7 +7,8 @@ interface HeatmapDay {
 }
 
 interface HeatmapData {
-  weeks: HeatmapDay[][];
+  rows: HeatmapDay[][];
+  columns: number;
   activeDays: number;
   total: number;
 }
@@ -22,9 +23,9 @@ const { month, recent, year } = Astro.props;
 const summary = (data: HeatmapData, label: string) => `${data.activeDays} 天有记录，${label}累计 ${data.total} 次`;
 
 const views = [
-  { id: 'month', label: '最近 30 天', data: month, summary: summary(month, '近 30 天') },
-  { id: 'recent', label: '最近 90 天', data: recent, summary: summary(recent, '近 90 天') },
-  { id: 'year', label: '全年轨迹', data: year, summary: summary(year, '今年') },
+  { id: 'month', label: '最近 30 天', data: month, summary: summary(month, '近 30 天'), gap: 6 },
+  { id: 'recent', label: '最近 90 天', data: recent, summary: summary(recent, '近 90 天'), gap: 5 },
+  { id: 'year', label: '全年轨迹', data: year, summary: summary(year, '今年'), gap: 3 },
 ];
 const defaultView = views[0];
 ---
@@ -48,17 +49,14 @@ const defaultView = views[0];
       class="heatmap-grid"
       data-heatmap-grid={view.id}
       data-summary={view.summary}
+      style={`--heat-cols: ${view.data.columns}; --heat-gap: ${view.gap}px`}
       hidden={view.id !== defaultView.id}
     >
-      {view.data.weeks.map((week) => (
-        <div class="heatmap-week">
-          {week.map((cell) => (
-            <span
-              class:list={['heat-cell', `level-${cell.level}`, !cell.inRange && 'is-out']}
-              title={cell.inRange ? `${cell.key} · ${cell.count} 次` : undefined}
-            />
-          ))}
-        </div>
+      {view.data.rows.flat().map((cell) => (
+        <span
+          class:list={['heat-cell', `level-${cell.level}`, !cell.inRange && 'is-out']}
+          title={cell.inRange ? `${cell.key} · ${cell.count} 次` : undefined}
+        />
       ))}
     </div>
   ))}

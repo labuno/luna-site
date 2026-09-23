@@ -51,37 +51,35 @@ export function levelFor(count) {
 }
 
 /**
- * 生成热力图网格：按周分列（周一为列首）。
- * @param {{ counts: Map<string, number>, days?: number, endDate?: Date }} options
+ * 生成热力图网格：按固定列数铺满容器（方格自适应，始终填满卡片宽度）。
+ * @param {{ counts: Map<string, number>, days?: number, columns?: number, endDate?: Date }} options
  */
-export function buildHeatmap({ counts, days = 91, endDate = new Date() }) {
+export function buildHeatmap({ counts, days = 30, columns = 10, endDate = new Date() }) {
   const end = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
-  const rangeStart = new Date(end);
-  rangeStart.setDate(rangeStart.getDate() - (days - 1));
+  const start = new Date(end);
+  start.setDate(start.getDate() - (days - 1));
 
-  const start = new Date(rangeStart);
-  const weekday = (start.getDay() + 6) % 7; // 周一 = 0
-  start.setDate(start.getDate() - weekday);
-
-  const weeks = [];
-  let week = [];
+  const cells = [];
   let activeDays = 0;
   let total = 0;
 
-  for (const cursor = new Date(start); cursor <= end; cursor.setDate(cursor.getDate() + 1)) {
-    const key = toDayKey(cursor);
-    const inRange = cursor >= rangeStart;
-    const count = inRange ? counts.get(key) ?? 0 : 0;
-    if (inRange && count > 0) activeDays += 1;
-    if (inRange) total += count;
-
-    if (week.length === 7) {
-      weeks.push(week);
-      week = [];
-    }
-    week.push({ key, count, inRange, level: levelFor(count) });
+  for (let i = 0; i < days; i += 1) {
+    const date = new Date(start);
+    date.setDate(start.getDate() + i);
+    const key = toDayKey(date);
+    const count = counts.get(key) ?? 0;
+    if (count > 0) activeDays += 1;
+    total += count;
+    cells.push({ key, count, inRange: true, level: levelFor(count) });
   }
-  if (week.length > 0) weeks.push(week);
 
-  return { weeks, activeDays, total, start: toDayKey(rangeStart), end: toDayKey(end) };
+  // 补足末行，保持网格方正（补位格渲染为不可见）
+  while (cells.length % columns !== 0) {
+    cells.push({ key: `pad-${cells.length}`, count: 0, inRange: false, level: 0 });
+  }
+
+  const rows = [];
+  for (let i = 0; i < cells.length; i += columns) rows.push(cells.slice(i, i + columns));
+
+  return { rows, columns, activeDays, total, start: toDayKey(start), end: toDayKey(end) };
 }

@@ -34,23 +34,35 @@ test('levelFor 分级', () => {
   assert.deepEqual([0, 1, 2, 3, 4, 6].map(levelFor), [0, 1, 2, 2, 3, 4]);
 });
 
-test('buildHeatmap 网格按周分列（周一开头）且统计正确', () => {
+test('buildHeatmap 固定列数铺满、按行返回，统计正确', () => {
   const counts = new Map([['2026-09-23', 2], ['2026-09-20', 1]]);
-  const end = new Date(2026, 8, 23); // 2026-09-23 周三
-  const { weeks, activeDays, total } = buildHeatmap({ counts, days: 91, endDate: end });
-  for (const [i, week] of weeks.entries()) {
-    if (i < weeks.length - 1 || week.length === 7) assert.equal(week.length, 7, `week ${i} 应有 7 天`);
-  }
-  // 首列第一天必须是周一
-  const first = weeks[0][0];
-  assert.equal(new Date(first.key).getDay(), 1);
+  const end = new Date(2026, 8, 23);
+  const { rows, columns, activeDays, total, start, end: endKey } = buildHeatmap({
+    counts,
+    days: 30,
+    columns: 10,
+    endDate: end,
+  });
+
+  assert.equal(columns, 10);
+  assert.equal(rows.length, 3, '30 天 / 10 列 = 3 行');
+  for (const row of rows) assert.equal(row.length, 10, '每行必须正好 10 格');
+
   assert.equal(activeDays, 2);
   assert.equal(total, 3);
-  const cell = weeks.flat().find((c) => c.key === '2026-09-23');
+  assert.equal(endKey, '2026-09-23');
+  assert.equal(start, '2026-08-25');
+
+  const cell = rows.flat().find((c) => c.key === '2026-09-23');
   assert.equal(cell.count, 2);
   assert.equal(cell.inRange, true);
   assert.equal(cell.level, 2);
-  // 范围外的补位单元格
-  const out = weeks.flat().filter((c) => !c.inRange);
-  assert.ok(out.length < 7, '范围外最多补一周内的位置');
+
+  // 末行补位：最后若干格为不可见补位
+  const padded = rows.flat().filter((c) => !c.inRange);
+  assert.equal(padded.length, 0, '30 天正好填满 3 行，无需补位');
+
+  const uneven = buildHeatmap({ counts, days: 31, columns: 10, endDate: end });
+  assert.equal(uneven.rows.length, 4, '31 天需要第 4 行');
+  assert.equal(uneven.rows.flat().filter((c) => !c.inRange).length, 9, '末行补 9 格');
 });

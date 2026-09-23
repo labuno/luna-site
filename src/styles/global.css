@@ -376,19 +376,18 @@ code { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; }
 .heatmap-toggle button { border: 0; background: transparent; color: var(--muted); font-size: 12px; padding: 5px 12px; cursor: pointer; }
 .heatmap-toggle button + button { border-left: 1px solid var(--line); }
 .heatmap-toggle button[aria-pressed='true'] { color: #fff; background: linear-gradient(110deg, var(--accent), var(--accent-2)); }
-.heatmap-grid { display: flex; gap: 3px; margin-top: 14px; overflow-x: auto; padding-bottom: 4px; }
+.heatmap-grid {
+  display: grid; grid-template-columns: repeat(var(--heat-cols, 10), minmax(0, 1fr));
+  gap: var(--heat-gap, 4px); margin-top: 14px;
+}
 .heatmap-grid[hidden] { display: none; }
-.heatmap-grid[data-heatmap-grid='month'] .heat-cell { width: 18px; height: 18px; }
-.heatmap-grid[data-heatmap-grid='month'] .heatmap-week { grid-template-rows: repeat(7, 18px); }
-.heatmap-grid[data-heatmap-grid='recent'] .heat-cell { width: 16px; height: 16px; }
-.heatmap-grid[data-heatmap-grid='recent'] .heatmap-week { grid-template-rows: repeat(7, 16px); }
-.heatmap-week { display: grid; grid-template-rows: repeat(7, 12px); gap: 3px; }
+.heatmap-grid .heat-cell { width: auto; height: auto; aspect-ratio: 1 / 1; border-radius: 5px; }
 .heat-cell { display: inline-block; width: 12px; height: 12px; border-radius: 3px; background: color-mix(in srgb, var(--line) 60%, transparent); }
 .heat-cell.level-1 { background: color-mix(in srgb, var(--accent) 28%, transparent); }
 .heat-cell.level-2 { background: color-mix(in srgb, var(--accent) 48%, transparent); }
 .heat-cell.level-3 { background: color-mix(in srgb, var(--accent) 72%, var(--accent-2)); }
 .heat-cell.level-4 { background: linear-gradient(135deg, var(--accent), var(--accent-3)); }
-.heat-cell.is-out { background: transparent; }
+.heatmap-grid .heat-cell.is-out { visibility: hidden; }
 .heatmap-legend { display: flex; align-items: center; gap: 5px; margin-top: 10px; color: var(--muted); font-size: 11px; }
 
 .post-list { list-style: none; margin: 0; padding: 0; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); overflow: hidden; }
