@@ -3,9 +3,8 @@
   "compilerOptions": {
     "allowJs": true,
     "checkJs": false,
-    "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["./src/*"]
     }
   },
   "include": [".astro/types.d.ts", "**/*"],
