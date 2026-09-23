@@ -1,231 +1,196 @@
 # luna-site
 
-LunaFoundry 的网站程序仓库（Public）。Astro + Pagefind 静态站点，内容来自私有仓库
-`labuno/luna-ore`，构建时注入并部署到 GitHub Pages（后续可无痛迁移到 VPS/Nginx）。
+[![CI](https://github.com/labuno/luna-site/actions/workflows/ci.yml/badge.svg)](https://github.com/labuno/luna-site/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 
-- 内容唯一事实源：Markdown / YAML / 媒体文件 + Git
-- 程序公开、内容私有：真实内容不进入本仓库的 Git 历史
-- 每次发布绑定明确的 `content` commit SHA，可复现、可回滚
-- Hosting Agnostic：除 `deploy-pages.yml` 外，业务代码不依赖 GitHub Pages 专有能力
+**A file-first static site engine for blogs, novels and projects — public code, private content,
+reproducible publishing.**
 
-## 架构
+luna-site is the engine behind [LunaFoundry](https://github.com/labuno). It renders a fast,
+search-enabled static website from a **separate private content repository**: writing stays plain
+Markdown / YAML / media files managed in Git, while this repository only holds the site code.
+Every deployment is pinned to an exact content commit, so any published revision can be
+reproduced or rolled back.
+
+[中文文档](./README.zh-CN.md)
+
+![Home page](docs/assets/demo-home.webp)
+
+| Article with table of contents | Novel chapter reader |
+| --- | --- |
+| ![Article](docs/assets/demo-article.webp) | ![Reader](docs/assets/demo-reader.webp) |
+
+*Screenshots use the fictional demo content bundled in [`examples/`](./examples) (`npm run dev:demo`).*
+
+## Features
+
+- **Blog, novels and projects** — post lists with taxonomy filters, novels with volumes and
+  chapters, project cards.
+- **Search without a backend** — a [Pagefind](https://pagefind.app) index is built at build
+  time; `⌘/Ctrl + K` opens the search page.
+- **Reading experience** — dark / light theme, CJK-first typography (sans headings, serif prose),
+  adjustable text size on chapter pages, chapter table of contents.
+- **Draft safety** — `draft: true` content never reaches pages, RSS, the sitemap or the search
+  index, and CI asserts this after every build.
+- **SEO and syndication** — canonical URLs, Open Graph, JSON-LD (`BlogPosting` / `Book`), RSS,
+  sitemap and robots.txt.
+- **Reproducible publishing** — deploys are pinned to a content commit SHA and can be re-run for
+  any revision.
+- **Host-agnostic output** — `dist/` is plain static files: GitHub Pages by default, any static
+  host or Nginx works unchanged.
+
+## How it works
 
 ```text
-labuno/luna-ore (Private)                  labuno/luna-site (Public)
-content/blog/*.md  novels/**  projects/*.yaml       Astro 页面 / 组件 / Schema
-media/**                                            scripts/ + Pagefind + CI
-        │                                                   ▲
-        │ push main                                         │ workflow_dispatch(content_ref=SHA)
-        ▼                                                   │
-  notify-site.yml ──────────────────────────────────────────┘
-                        （仅触发，不做构建）
-                                    │
-                                    ▼
-                    deploy-pages.yml：checkout site + content@SHA
-                                    │
-                    content:sync → validate → astro check → build
-                                    │
-                              astro build → dist/
-                                    │
-                    pagefind --site dist → dist/pagefind/
-                                    │
-                    check:dist（断链 / 草稿泄漏 / 索引断言）
-                                    │
-                              GitHub Pages
+luna-ore (private)                        luna-site (this repo, public)
+content/blog/**  novels/**  projects/**         Astro pages, components, schemas
+media/**                                        scripts/, tests/, workflows
+        │                                                    ▲
+        │ push main                                          │ workflow_dispatch(content_ref=<SHA>)
+        ▼                                                    │
+  notify-site.yml ───────────────────────────────────────────┘
+                              (trigger only)
+                                       │
+                                       ▼
+                     deploy-pages.yml: checkout site + content@<SHA>
+                                       │
+              content:sync → validate → astro check → build
+                                       │
+                        pagefind --site dist → dist/pagefind/
+                                       │
+                   check:dist (links / drafts / index) → GitHub Pages
 ```
 
-## 目录结构
+The content repository never shares Git history with this one, and only the site repository's
+workflows (running with two fine-grained PATs) can read it.
 
-```text
-luna-site/
-├── .github/workflows/
-│   ├── ci.yml                 # PR/CI：仅用 examples 的 Demo 内容，无需任何 Secret
-│   └── deploy-pages.yml       # main 部署：checkout 私有内容 @ 指定 SHA
-├── examples/                  # Demo 内容（虚构，随 MIT 分发）
-│   ├── content/{blog,novels,projects}/
-│   └── media/
-├── content/                   # 构建工作区：由私有仓库注入（.gitignore，禁止提交）
-├── public/media/              # 构建工作区：媒体注入点（.gitignore，禁止提交）
-├── scripts/
-│   ├── sync-content.mjs       # 同步私有内容 → 工作区
-│   ├── validate-content.mjs   # 校验 Schema/slug/章节号/媒体/草稿清单
-│   └── check-links.mjs        # dist 断言：断链、anchor、草稿泄漏、索引
-├── src/
-│   ├── lib/                   # 纯逻辑（可被 node:test 直接测试）
-│   ├── components/ layouts/ pages/ scripts/ styles/ utils/
-│   ├── content.config.ts      # Content Schema（blog / novels / chapters / projects）
-│   └── site.config.ts
-└── tests/                     # node:test 单元与工作流测试
-```
+## Quick start
 
-## 本地开发
-
-要求 Node ≥ 22.12（CI 固定 24）。
+Requires Node ≥ 22.12 (CI uses Node 24).
 
 ```bash
 npm install
+npm run dev:demo        # run the site with the bundled demo content — no secrets needed
+```
 
-# 只用 Demo 内容（外部贡献者/无私有仓库权限时）
-npm run dev:demo
+Working on the engine itself needs nothing else. To preview real content, keep the content
+checkout as a sibling directory named `luna-ore` (or point `CONTENT_SOURCE_DIR` at it):
 
-# 使用真实私有内容（两个仓库保持同级目录）
-git clone git@github.com:labuno/luna-site.git
-git clone git@github.com:labuno/luna-ore.git
-cd luna-site
+```bash
 npm run content:sync -- ../luna-ore
 npm run dev
 ```
 
-常用命令：
+| Command | What it does |
+| --- | --- |
+| `npm run dev` | Dev server using the existing `content/` workspace |
+| `npm run dev:demo` | Sync `examples/` and start the dev server |
+| `npm run content:sync -- <dir>` | Sync a content repository into the workspace (clears stale files first) |
+| `npm run content:demo` | Overwrite the workspace with `examples/` |
+| `npm run validate:content` | Validate schemas, slugs, chapter numbering, media, drafts |
+| `npm run check` | `astro check` type and schema checking |
+| `npm run build` | `astro build` + Pagefind indexing |
+| `npm run check:dist` | Assert built output: links, anchors, drafts, RSS/sitemap/index |
+| `npm run test` | `node:test` unit and workflow-constraint tests |
+| `npm run build:demo` | Full pipeline: validate + build + dist assertions on demo content |
 
-| 命令 | 作用 |
-|------|------|
-| `npm run dev` | 开发服务器（使用 `content/` 工作区现有内容） |
-| `npm run content:sync -- ../luna-ore` | 把私有内容同步到工作区（每次先清空） |
-| `npm run content:demo` | 用 `examples/` 覆盖工作区内容 |
-| `npm run validate:content` | 内容校验：必填字段、slug/章节唯一、媒体存在、草稿清单 |
-| `npm run check` | `astro check` 类型与 Schema 检查 |
-| `npm run build` | `astro build` + `pagefind --site dist` |
-| `npm run test` | node:test 单元测试（含工作流约束测试） |
-| `npm run check:dist` | 构建后断言：断链、锚点、草稿泄漏、Pagefind/Sitemap/RSS |
-| `npm run build:demo` | 内容校验 + 构建 + dist 断言的完整流程（Demo 内容） |
+> When the sibling `luna-ore` checkout is missing (public CI, or a contributor who only cloned
+> this repository), tests that exercise the content repository are skipped automatically.
 
-> 未检出同级 `luna-ore` 时（公开 CI、或只克隆了本站点的贡献者），涉及私有内容仓库的测试会自动跳过，其余测试与 `build:demo` 流程不受影响。
+## Content model
 
-## 内容 Schema
+Content lives in the content repository and is synced into the gitignored `content/` and
+`public/media/` build workspaces:
 
-### Blog（`content/blog/<year>/<file>.md`）
+- `content/blog/<year>/*.md` — blog posts
+- `content/novels/<slug>/novel.yaml` + `content/novels/<slug>/<volume-dir>/*.md` — novels and chapters
+- `content/projects/*.yaml` — project entries
+- `media/**` — images, referenced from Markdown as `/media/...`
 
-```yaml
-title: "标题"
-slug: "stable-url-slug"     # URL 使用该字段，文件改名不影响链接
-description: "摘要（列表、搜索、SEO）"
-date: 2026-09-20
-updated: 2026-09-20          # 可选
-section: "AI"                # 一级栏目
-category: "Agent"            # 二级分类
-tags: ["Runtime", "MCP"]     # 横向标签
-cover: "/media/blog/agent-runtime/cover.webp"   # 可选
-featured: false
-draft: false                 # true 不生成页面/RSS/Sitemap/搜索索引
-```
+Full field reference and validation rules: [docs/CONTENT-SCHEMA.md](./docs/CONTENT-SCHEMA.md) (中文).
 
-### Novel（`content/novels/<slug>/novel.yaml`）
+## Configuration
 
-`title` `slug` `author` `status`(serializing|completed|paused) `description` `genres[]` `tags[]`
-`cover?` `created` `updated` `featured`
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `SITE_URL` | `https://labuno.github.io` | Canonical origin (canonical tags, RSS, sitemap) |
+| `BASE_PATH` | `/luna-site/` | Deployed sub-path; use `/` for a custom domain |
+| `CONTENT_SOURCE_DIR` | `../luna-ore` | Source directory for `content:sync` |
 
-### Chapter（`content/novels/<slug>/<volume-dir>/<NNN>.md`）
+Site identity (name, title, description, author, language) lives in
+[`src/site.config.ts`](./src/site.config.ts).
 
-`title` `novel`(小说 slug) `slug` `volume` `chapter`(正整数) `published` `tags[]` `draft`
+## Deployment
 
-### Project（`content/projects/<name>.yaml`）
+Pushing to `main` deploys through [`deploy-pages.yml`](./.github/workflows/deploy-pages.yml):
+it checks out the private content repository at `content_ref` (defaults to `main`; the content
+push workflow passes the exact commit SHA), syncs and validates the content, type-checks and
+builds with Astro, indexes with Pagefind, asserts the output, and publishes to GitHub Pages.
 
-`title` `description` `url?` `repo?` `status`(idea|building|active|archived) `tags[]` `featured`
+Repository, variable and secret setup plus rollback commands are documented in
+[docs/GITHUB-CLI.md](./docs/GITHUB-CLI.md) (中文).
 
-校验规则：必填字段缺失、slug 重复、同一小说章节号或章节 slug 重复、`novel` 引用不存在、
-分类/标签 slug 冲突、`cover` 与正文内 `/media/...` 引用缺失 → 校验失败，构建中止。
-
-## 分类、标签与 URL
-
-- 展示名称与 URL slug 解耦：URL 一律使用 slug（中文保留字符、英文小写连字符）。
-- 重命名展示名而保持旧链接：在 `src/lib/taxonomy-overrides.mjs` 中加一条
-  `'old-slug': '新展示名'`。
-- `/tags/{slug}/` 聚合博客、小说、章节与项目的标签；`/categories/{slug}/` 聚合二级分类；
-  博客列表支持 `?section=` 与 `?tags=a,b`（AND 组合，客户端即时过滤，URL 可分享）；
-  小说书架支持 `?genre=`。
-
-## 设计文档
-
-- [`docs/DESIGN-V1.md`](./docs/DESIGN-V1.md)：设计基线 V1.0 的 Markdown 版本
-  （与 `LunaFoundry_双仓库网站系统设计与开发交付文档_V1.0.docx` 内容一致，由
-  `docs/tools/docx-to-markdown.py` 转换，原件为签署版）。
-- [`docs/GITHUB-CLI.md`](./docs/GITHUB-CLI.md)：建仓、配置 Variables/Secrets、发布与回滚命令。
-
-## 部署到 GitHub Pages（第一阶段）
-
-首次创建仓库、配置 Variables/Secrets、首次发布与日常发布的完整命令见
-[`docs/GITHUB-CLI.md`](./docs/GITHUB-CLI.md)。也可以直接运行两个幂等脚本：
-
-```bash
-./scripts/bootstrap-github.sh    # 创建两个仓库、写入 Variables、推送、开启 Pages(Actions)
-./scripts/configure-secrets.sh   # 交互式写入两个最小权限 PAT 并触发首次部署
-```
-
-这里是要点：
-
-1. `luna-site` 为 Public，`content` 为 Private。
-2. `luna-site` Variables：`CONTENT_REPOSITORY`、`SITE_URL`、`BASE_PATH`。
-   `luna-site` Secret：`CONTENT_REPO_TOKEN`（Fine-grained，content: Contents Read）。
-3. `content` Variables：`SITE_REPOSITORY`；Secret：`SITE_WORKFLOW_TOKEN`
-   （Fine-grained，luna-site: Actions Write）。
-4. Pages Source 选择 **GitHub Actions**，`deploy-pages.yml` 使用 `github-pages` environment。
-5. 默认地址 `https://labuno.github.io/luna-site/`（`BASE_PATH=/luna-site/`）。
-
-发布链路：`content` push → `notify-site.yml`（只触发，传递 `GITHUB_SHA`）→
-`deploy-pages.yml` checkout `content@SHA` → sync → validate → build → check:dist → Pages。
-
-回滚与重发（不需要改内容）：
-
-```bash
-# 重发某个内容版本
-gh workflow run deploy-pages.yml --repo labuno/luna-site \
-  -f content_ref=<CONTENT_SHA> -f reason=manual-redeploy
-
-# 重发某个站点代码版本
-gh workflow run deploy-pages.yml --repo labuno/luna-site --ref <SITE_SHA>
-
-gh run list --repo labuno/luna-site --limit 10
-gh run view <RUN_ID> --repo labuno/luna-site --log-failed
-```
-
-## Base Path 与自定义域名
-
-所有站内链接、媒体 URL、RSS、Sitemap、canonical 都通过 `sitePath()` 生成；Markdown 中的
-`/media/...`、`/blog/...` 由 `src/lib/remark-base-path.mjs` 在构建期按 `BASE_PATH` 重写。
-
-- GitHub Pages 项目站点：`SITE_URL=https://labuno.github.io`、`BASE_PATH=/luna-site/`
-- 绑定自定义域名：`SITE_URL=https://你的域名`、`BASE_PATH=/`
-- 内容文件与 URL 结构都不需要修改。
-
-## 安全与版权
-
-- `content/` 与 `public/media/` 是构建工作区，已在 `.gitignore` 中排除；
-  `deploy-pages.yml` 构建后会执行 `git status --porcelain` 断言，防止私有内容被提交。
-- 两个 PAT 都是 Fine-grained 最小权限；token 不进入代码、日志或前端变量。
-- `examples/` 内容为虚构示例，随 MIT 分发；正式内容版权归 LunaFoundry 所有，不随代码许可授权。
-- 依赖锁定：提交 `package-lock.json`，CI 使用 `npm ci`。
-
-## 迁移到 VPS / Nginx（第二阶段）
-
-只需要替换部署环节，内容、页面、搜索、URL 全部不变：
+Any static host works — building is the only requirement:
 
 ```bash
 npm ci
-npm run content:sync -- /srv/labuno/luna-ore
+npm run content:sync -- /srv/luna-ore
 npm run validate:content && npm run build && npm run check:dist
-# dist/ 可直接由 Nginx 托管
-rsync -az --delete dist/ deploy@vps:/srv/www/labuno/
+rsync -az --delete dist/ deploy@host:/srv/www/site/
 ```
 
-- 保持同一个域名与 URL 结构，历史链接不变；
-- Pagefind 是静态索引，Nginx 直接服务即可；
-- 如需 CDN，把 `dist/` 作为源站内容上传/回源即可；
-- 增加 Dockerfile 或 rsync 脚本时，不需要改动 `src/`、`content/` 或 Schema。
+## Project structure
 
-## 测试与 CI
+```text
+luna-site/
+├── .github/workflows/     # ci.yml (demo content) + deploy-pages.yml (private content)
+├── docs/                  # design baseline, ops guide, content schema, screenshots
+├── examples/              # fictional demo content (distributed with this repo)
+├── content/               # gitignored build workspace (injected by content:sync)
+├── public/media/          # gitignored build workspace for media
+├── scripts/               # content pipeline + repository bootstrap tooling
+├── src/
+│   ├── components/ layouts/ pages/ scripts/ styles/ utils/
+│   ├── lib/               # pure logic, unit-tested with node:test
+│   ├── content.config.ts  # content schemas (blog / novels / chapters / projects)
+│   └── site.config.ts
+└── tests/                 # node:test suites and workflow constraints
+```
+
+## Contributing
+
+Issues and pull requests are welcome. Before opening a PR:
 
 ```bash
-npm run test          # 46+ 条断言：路径/base、remark 重写、同步、校验、dist 断言、工作流约束
-npm run build:demo    # Demo 内容的端到端构建与断言
+npm run test
+npm run build:demo     # validation + build + dist assertions
 ```
 
-`ci.yml` 在 PR 上只使用 `examples/`，不引用任何 Secret，外部贡献者可以直接运行。
+`ci.yml` uses only `examples/` and references no secrets, so forks are fully testable.
+Please don't commit real content: `content/` and `public/media/` are build workspaces and are
+gitignored.
 
-## 已知说明
+## License
 
-- Astro 7 默认 Markdown 处理器不再内置 unified 管线，使用 remark 插件需显式依赖
-  `@astrojs/markdown-remark`（已加入 `dependencies`）。
-- `configure-pages` / `upload-pages-artifact` / `deploy-pages` 当前按设计文档使用
-  v5 / v4 / v4；官方已有更新 major（v6 / v5 / v5），升级前应先在 CI 验证。
-- Pagefind 对 `zh-cn` 不做词干还原（stemming），中文搜索按分词匹配，属预期行为。
+- Site engine code: [MIT](./LICENSE)
+- Bundled demo content in `examples/`: fictional, distributed under the same MIT license
+- Real published content lives in a separate private repository and is **not** covered by this
+  license — see [NOTICE.md](./NOTICE.md)
+
+## Documentation
+
+| Document | Contents |
+| --- | --- |
+| [docs/CONTENT-SCHEMA.md](./docs/CONTENT-SCHEMA.md) | Content fields and validation rules (中文) |
+| [docs/GITHUB-CLI.md](./docs/GITHUB-CLI.md) | Repo/variables/secrets setup, publish and rollback (中文) |
+| [docs/DESIGN-V1.md](./docs/DESIGN-V1.md) | Design baseline V1.0 (中文) |
+| [docs/MULTI-ACCOUNT.md](./docs/MULTI-ACCOUNT.md) | Maintainer setup for multiple GitHub accounts (中文) |
+
+## Notes
+
+- Astro 7 no longer bundles a unified pipeline for Markdown; remark plugins need
+  `@astrojs/markdown-remark` as an explicit dependency (already included).
+- Pages actions are intentionally pinned (`configure-pages` v5, `upload-pages-artifact` v4,
+  `deploy-pages` v4); bump them only after validating in CI.
+- Pagefind does not support stemming for `zh-cn`; Chinese search matches by token, which is
+  expected behavior.
