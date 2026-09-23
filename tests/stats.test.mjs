@@ -47,6 +47,11 @@ test('buildHeatmap 固定列数铺满、按行返回，统计正确', () => {
   assert.equal(columns, 10);
   assert.equal(rows.length, 3, '30 天 / 10 列 = 3 行');
   for (const row of rows) assert.equal(row.length, 10, '每行必须正好 10 格');
+  const single = buildHeatmap({ counts, days: 30, columns: 30, endDate: end });
+  assert.equal(single.rows.length, 1, '30 天 / 30 列 = 1 行');
+  const dense = buildHeatmap({ counts, days: 365, columns: 53, endDate: end });
+  assert.equal(dense.rows.length, 7, '全年 / 53 列 = 7 行（GitHub 密度）');
+  assert.equal(dense.rows.at(-1).filter((c) => c.inRange).length, 47, '末行 47 个真实日期 + 6 个补位');
 
   assert.equal(activeDays, 2);
   assert.equal(total, 3);

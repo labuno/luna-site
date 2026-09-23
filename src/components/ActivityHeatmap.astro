@@ -23,9 +23,9 @@ const { month, recent, year } = Astro.props;
 const summary = (data: HeatmapData, label: string) => `${data.activeDays} 天有记录，${label}累计 ${data.total} 次`;
 
 const views = [
-  { id: 'month', label: '最近 30 天', data: month, summary: summary(month, '近 30 天'), gap: 6 },
-  { id: 'recent', label: '最近 90 天', data: recent, summary: summary(recent, '近 90 天'), gap: 5 },
-  { id: 'year', label: '全年轨迹', data: year, summary: summary(year, '今年'), gap: 3 },
+  { id: 'month', label: '最近 30 天', data: month, summary: summary(month, '近 30 天'), gap: 3 },
+  { id: 'recent', label: '最近 90 天', data: recent, summary: summary(recent, '近 90 天'), gap: 3 },
+  { id: 'year', label: '全年轨迹', data: year, summary: summary(year, '今年'), gap: 2 },
 ];
 const defaultView = views[0];
 ---
