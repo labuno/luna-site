@@ -54,7 +54,7 @@ gh workflow run deploy-pages.yml \
 
 cat <<EOF2
 
-Secrets 已配置，已触发首次部署（content_ref=$content_sha）。
+Secrets 已配置，已触发首次部署（content_ref=${content_sha}）。
 
   查看运行: gh run list --repo $owner/$site_repo --limit 5
   跟踪进度: gh run watch --repo $owner/$site_repo

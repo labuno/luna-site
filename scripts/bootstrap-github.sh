@@ -3,7 +3,7 @@
 #
 #   ./scripts/bootstrap-github.sh [--dry-run]
 #
-# 账号锁定：默认使用 $GITHUB_OWNER（默认 labuno）的 gh 凭据，
+# 账号锁定：默认使用 ${GITHUB_OWNER}（默认 labuno）的 gh 凭据，
 # 通过 `gh auth token --user` 取 token，因此不依赖当前 gh 活跃账号。
 #
 # 环境变量覆盖：
@@ -51,7 +51,7 @@ account_token=""
 if [ "$dry_run" = 0 ]; then
   if ! account_token="$(gh auth token --user "$owner" 2>/dev/null)"; then
     cat >&2 <<EOF2
-gh 未登录账号 $owner（当前活跃账号可能是别人）。
+gh 未登录账号 ${owner}（当前活跃账号可能是别人）。
 先执行：gh auth login --hostname github.com    # 选择 $owner
 或用：  GITHUB_OWNER=<你的账号> $0
 EOF2

@@ -153,7 +153,7 @@ if gh auth token --user "$account" >/dev/null 2>&1; then
   say "gh 已登录该账号：gh 命令可用 GH_TOKEN=\$(gh auth token -u $account) 精确指定身份"
 else
   say ""
-  say "提醒：gh 目前未登录 $account。登录后即可用它建仓："
+  say "提醒：gh 目前未登录 ${account}。登录后即可用它建仓："
   say "  gh auth login --hostname github.com   # 选择 $account 账号"
 fi
 
