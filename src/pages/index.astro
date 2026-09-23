@@ -1,20 +1,45 @@
 ---
 import { getCollection } from 'astro:content';
 import BaseLayout from '@/layouts/BaseLayout.astro';
-import BlogCard from '@/components/BlogCard.astro';
-import NovelCard from '@/components/NovelCard.astro';
+import ActivityHeatmap from '@/components/ActivityHeatmap.astro';
 import { siteConfig } from '@/site.config';
 import { sitePath } from '@/utils/paths';
+import { formatDate } from '@/utils/content';
+import { buildHeatmap, collectActivity, countWords, formatWords } from '@/lib/stats.mjs';
 
 const posts = (await getCollection('blog', ({ data }) => !data.draft))
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
-const novels = (await getCollection('novels')).sort((a, b) => b.data.updated.valueOf() - a.data.updated.valueOf());
-const projects = (await getCollection('projects')).sort((a, b) => Number(b.data.featured) - Number(a.data.featured));
+const novels = await getCollection('novels');
+const chapters = await getCollection('chapters', ({ data }) => !data.draft);
+const projects = await getCollection('projects');
 
-const featuredPosts = posts.filter((post) => post.data.featured);
-const latestPosts = (featuredPosts.length > 0 ? featuredPosts : posts).slice(0, 4);
-const featuredNovels = novels.filter((novel) => novel.data.featured);
-const shelf = (featuredNovels.length > 0 ? featuredNovels : novels).slice(0, 4);
+const totalWords =
+  posts.reduce((sum, post) => sum + countWords(post.body), 0) +
+  chapters.reduce((sum, chapter) => sum + countWords(chapter.body), 0);
+
+const stats = [
+  { value: posts.length, label: '篇博客' },
+  { value: novels.length, label: '部小说' },
+  { value: chapters.length, label: '个章节' },
+  { value: formatWords(totalWords), label: '总字数' },
+  { value: projects.length, label: '个项目' },
+];
+
+const latestPosts = posts.slice(0, 10);
+
+const events = [
+  ...posts.map((post) => ({ date: post.data.date, kind: '博客', title: post.data.title, href: sitePath(`/blog/${post.data.slug}/`) })),
+  ...chapters.map((chapter) => ({ date: chapter.data.published, kind: '章节', title: chapter.data.title, href: sitePath(`/novel/${chapter.data.novel}/${chapter.data.slug}/`) })),
+  ...novels.map((novel) => ({ date: novel.data.updated, kind: '小说', title: novel.data.title, href: sitePath(`/novel/${novel.data.slug}/`) })),
+]
+  .sort((a, b) => b.date.valueOf() - a.date.valueOf())
+  .slice(0, 8);
+
+const activity = collectActivity([
+  ...posts.map((post) => ({ date: post.data.date })),
+  ...chapters.map((chapter) => ({ date: chapter.data.published })),
+  ...novels.map((novel) => ({ date: novel.data.updated })),
+]);
 ---
 <BaseLayout>
   <section class="hero">
@@ -24,50 +49,49 @@ const shelf = (featuredNovels.length > 0 ? featuredNovels : novels).slice(0, 4);
     <div class="hero-actions">
       <a class="button primary" href={sitePath('/blog/')}>阅读博客</a>
       <a class="button" href={sitePath('/novel/')}>进入小说</a>
-      <a class="text-link" href={siteConfig.github}>GitHub ↗</a>
+      <a class="text-link" href={siteConfig.repo} target="_blank" rel="noopener noreferrer">GitHub ↗</a>
     </div>
   </section>
 
-  <section class="metric-strip" aria-label="站点内容">
-    <div><strong>{posts.length}</strong><span>篇博客</span></div>
-    <div><strong>{novels.length}</strong><span>部小说</span></div>
-    <div><strong>{projects.length}</strong><span>个项目</span></div>
-    <div><strong>Files</strong><span>内容长期存储</span></div>
+  <section class="metric-strip" aria-label="站点统计">
+    {stats.map((stat) => (
+      <div><strong>{stat.value}</strong><span>{stat.label}</span></div>
+    ))}
   </section>
 
   <section class="section-block">
     <div class="section-heading">
-      <div><span class="eyebrow">LATEST WRITING</span><h2>最近博客</h2></div>
+      <div><span class="eyebrow">ACTIVITY</span><h2>工作日志</h2></div>
+      <span class="section-note">发布与更新的时间轨迹</span>
+    </div>
+    <div class="dashboard-grid">
+      <ol class="log-list">
+        {events.map((event) => (
+          <li>
+            <time datetime={event.date.toISOString()}>{formatDate(event.date)}</time>
+            <span class="log-kind">{event.kind}</span>
+            <a href={event.href}>{event.title}</a>
+          </li>
+        ))}
+        {events.length === 0 && <li class="log-empty">还没有记录，发布第一篇文章后会出现在这里。</li>}
+      </ol>
+      <ActivityHeatmap recent={buildHeatmap({ counts: activity, days: 91 })} year={buildHeatmap({ counts: activity, days: 365 })} />
+    </div>
+  </section>
+
+  <section class="section-block">
+    <div class="section-heading">
+      <div><span class="eyebrow">LATEST</span><h2>最新发布</h2></div>
       <a href={sitePath('/blog/')}>查看全部 →</a>
     </div>
-    <div class="grid two-cols">
-      {latestPosts.map((post) => <BlogCard post={post} />)}
-    </div>
-  </section>
-
-  <section class="section-block">
-    <div class="section-heading">
-      <div><span class="eyebrow">SERIAL FICTION</span><h2>小说连载</h2></div>
-      <a href={sitePath('/novel/')}>查看书架 →</a>
-    </div>
-    <div class="grid two-cols">
-      {shelf.map((novel) => <NovelCard novel={novel} />)}
-    </div>
-  </section>
-
-  <section class="section-block">
-    <div class="section-heading">
-      <div><span class="eyebrow">PROJECTS</span><h2>项目</h2></div>
-      <a href={sitePath('/projects/')}>全部项目 →</a>
-    </div>
-    <div class="grid two-cols">
-      {projects.slice(0, 2).map((project) => (
-        <article class="card project-card">
-          <div class="card-meta"><span>{project.data.status}</span></div>
-          <h3><a href={sitePath('/projects/')}>{project.data.title}</a></h3>
-          <p>{project.data.description}</p>
-        </article>
+    <ol class="post-list">
+      {latestPosts.map((post) => (
+        <li>
+          <time datetime={post.data.date.toISOString()}>{formatDate(post.data.date)}</time>
+          <a class="post-title" href={sitePath(`/blog/${post.data.slug}/`)}>{post.data.title}</a>
+          <span class="post-meta">{post.data.section} · {post.data.category}</span>
+        </li>
       ))}
-    </div>
+    </ol>
   </section>
 </BaseLayout>

@@ -1,0 +1,85 @@
+---
+interface HeatmapDay {
+  key: string;
+  count: number;
+  inRange: boolean;
+  level: number;
+}
+
+interface HeatmapData {
+  weeks: HeatmapDay[][];
+  activeDays: number;
+  total: number;
+}
+
+interface Props {
+  recent: HeatmapData;
+  year: HeatmapData;
+}
+
+const { recent, year } = Astro.props;
+const summary = (data: HeatmapData, label: string) => `${data.activeDays} 天有记录，${label}累计 ${data.total} 次`;
+const recentSummary = summary(recent, '近 90 天');
+const yearSummary = summary(year, '今年');
+---
+
+<section
+  class="heatmap-card"
+  data-heatmap
+  data-summary-recent={recentSummary}
+  data-summary-year={yearSummary}
+  aria-label="写作轨迹"
+>
+  <div class="heatmap-head">
+    <p class="heatmap-summary" data-heatmap-summary>{recentSummary}</p>
+    <div class="heatmap-toggle" role="group" aria-label="轨迹范围">
+      <button type="button" data-heatmap-view="recent" aria-pressed="true">最近 90 天</button>
+      <button type="button" data-heatmap-view="year" aria-pressed="false">全年轨迹</button>
+    </div>
+  </div>
+
+  {[['recent', recent], ['year', year]].map(([view, data]) => (
+    <div class="heatmap-grid" data-heatmap-grid={view as string} hidden={view === 'year'}>
+      {(data as HeatmapData).weeks.map((week) => (
+        <div class="heatmap-week">
+          {week.map((cell) => (
+            <span
+              class:list={['heat-cell', `level-${cell.level}`, !cell.inRange && 'is-out']}
+              title={cell.inRange ? `${cell.key} · ${cell.count} 次` : undefined}
+            />
+          ))}
+        </div>
+      ))}
+    </div>
+  ))}
+
+  <div class="heatmap-legend" aria-hidden="true">
+    <span>少</span>
+    {[0, 1, 2, 3, 4].map((level) => <span class:list={['heat-cell', `level-${level}`]} />)}
+    <span>多</span>
+  </div>
+</section>
+
+<script>
+  const root = document.querySelector('[data-heatmap]');
+  if (root) {
+    const buttons = [...root.querySelectorAll('[data-heatmap-view]')];
+    const grids = [...root.querySelectorAll('[data-heatmap-grid]')];
+    const summaryEl = root.querySelector('[data-heatmap-summary]');
+
+    const setView = (view) => {
+      for (const grid of grids) grid.hidden = grid.getAttribute('data-heatmap-grid') !== view;
+      for (const button of buttons) {
+        button.setAttribute('aria-pressed', String(button.getAttribute('data-heatmap-view') === view));
+      }
+      if (summaryEl) {
+        const text = view === 'year' ? root.getAttribute('data-summary-year') : root.getAttribute('data-summary-recent');
+        summaryEl.textContent = text ?? '';
+      }
+    };
+
+    for (const button of buttons) {
+      button.addEventListener('click', () => setView(button.getAttribute('data-heatmap-view')));
+    }
+  }
+</script>

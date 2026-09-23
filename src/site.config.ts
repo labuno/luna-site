@@ -4,6 +4,7 @@ export const siteConfig = {
   description: 'AI、软件、开源与小说创作。一个以文件为长期内容源的个人站点。',
   author: 'LunaFoundry',
   github: 'https://github.com/labuno',
+  repo: 'https://github.com/labuno/luna-site',
   language: 'zh-CN',
 };
 

@@ -3,7 +3,7 @@ import { getCollection } from 'astro:content';
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import BlogCard from '@/components/BlogCard.astro';
 import FilterChips from '@/components/FilterChips.astro';
-import { collectTaxonomy } from '@/utils/content';
+import { collectTaxonomy, formatDate } from '@/utils/content';
 
 const posts = (await getCollection('blog', ({ data }) => import.meta.env.DEV || !data.draft))
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
@@ -16,6 +16,9 @@ const tags = collectTaxonomy(posts.flatMap((post) => post.data.tags));
     <span class="eyebrow">BLOG</span>
     <h1>博客</h1>
     <p>关于 AI、工程、产品与持续创造的记录。</p>
+    {posts[0] && (
+      <p class="page-note">共 {posts.length} 篇 · 最后更新于 <time datetime={posts[0].data.date.toISOString()}>{formatDate(posts[0].data.date)}</time></p>
+    )}
   </section>
 
   <div data-filter-root>
